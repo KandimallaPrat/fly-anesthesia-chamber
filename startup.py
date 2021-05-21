@@ -5,19 +5,22 @@ import argparse
 from time import time, sleep, localtime, strftime
 from operator import add, sub
 
+# ser = serial.Serial(port='/dev/ttyUSB0', baudrate=19200, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=60, rtscts=True)
+# s = ser.read(1000)
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Arguments
 # ----------------------------------------------------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='fly-anesthesia')
 parser.add_argument('--datadir', type=str, required=False, default='data/')
-parser.add_argument('--t_experiment', type=float, required=False, default=5)
-parser.add_argument('--t_motor_on', type=float, nargs='+', required=False, default=[1, 2, 3])
-parser.add_argument('--motor_duration', type=float, nargs='+', required=False, default=[0.1, 0.2, 0.3])
-parser.add_argument('--t_led_on', type=float, nargs='+', required=False, default=[2, 3, 4])
-parser.add_argument('--led_duration', type=float, nargs='+', required=False, default=[0.15, 0.25, 0.35])
+parser.add_argument('--t_experiment', type=float, required=False, default=300)
+parser.add_argument('--t_motor_on', type=float, nargs='+', required=False, default=[30, 220])
+parser.add_argument('--motor_duration', type=float, nargs='+', required=False, default=[30, 20])
+parser.add_argument('--t_led_on', type=float, nargs='+', required=False, default=[150])
+parser.add_argument('--led_duration', type=float, nargs='+', required=False, default=[15])
 args = parser.parse_args()
 
-# Override inputs
+# Over ride inputs
 datadir = args.datadir
 t_experiment = args.t_experiment  # all in seconds
 t_motor_on = args.t_motor_on
@@ -95,7 +98,7 @@ led_duration = np.array([led_duration])
 # ----------------------------------------------------------------------------------------------------------------------
 # Start camera
 # ----------------------------------------------------------------------------------------------------------------------
-use_camera = False
+use_camera = True
 if use_camera:
     from picamera import PiCamera
     camera = PiCamera()
@@ -130,13 +133,14 @@ while frame_time < t_experiment:
     if use_camera:
         frame_complete = camera.frame.complete
         frame_time = camera.frame.timestamp  # in microseconds
+
+        if frame_time is None:
+            frame_time = 0
+
         frame_time = float(frame_time)/(10**6)  # convert from long us to float s
     else:
         frame_complete = True
         frame_time = (time() - start_time)
-
-    if frame_time is None:
-        frame_time = 0
 
     if use_camera:
         frame_index = camera.frame.index
