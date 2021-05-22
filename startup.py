@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import argparse
+import gpiozero
 
 from time import time, sleep, localtime, strftime
 from operator import add, sub
