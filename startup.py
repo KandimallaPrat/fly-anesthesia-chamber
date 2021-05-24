@@ -106,7 +106,7 @@ led_duration = np.array([led_duration])
 use_camera = True
 frame_rate = 60  # Hard coded for resolution
 # 1920x1080 at 30
-# 1280×720 at 60
+# 1280x720 at 60
 # 640x480 at 90
 
 if use_camera:
