@@ -14,11 +14,12 @@ from operator import add, sub
 # ----------------------------------------------------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='fly-anesthesia')
 parser.add_argument('--datadir', type=str, required=False, default='data/')
-parser.add_argument('--t_experiment', type=float, required=False, default=300)
-parser.add_argument('--t_motor_on', type=float, nargs='+', required=False, default=[30, 220])
-parser.add_argument('--motor_duration', type=float, nargs='+', required=False, default=[30, 20])
-parser.add_argument('--t_led_on', type=float, nargs='+', required=False, default=[150])
-parser.add_argument('--led_duration', type=float, nargs='+', required=False, default=[15])
+parser.add_argument('--t_experiment', type=float, required=False, default=10)
+parser.add_argument('--t_motor_on', type=float, nargs='+', required=False, default=[])
+parser.add_argument('--motor_duration', type=float, nargs='+', required=False, default=[])
+parser.add_argument('--t_led_on', type=float, nargs='+', required=False, default=[])
+parser.add_argument('--led_duration', type=float, nargs='+', required=False, default=[])
+parser.add_argument('--selfcheck', type=bool, required=False, default=False)
 args = parser.parse_args()
 
 # Over ride inputs
@@ -28,6 +29,7 @@ t_motor_on = args.t_motor_on
 motor_duration = args.motor_duration
 t_led_on = args.t_led_on
 led_duration = args.led_duration
+write_data = not args.selfcheck
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Argument checking
@@ -38,10 +40,11 @@ if datadir[-1] != '/':
 
 datadir = datadir + strftime("%Y-%m-%d-%H-%M-%S", localtime()) + '/'
 
-if os.path.isdir(datadir):
-    raise ValueError('Experiment directory already exists.')
-else:
-    os.mkdir(datadir)
+if write_data:
+    if os.path.isdir(datadir):
+        raise ValueError('Experiment directory already exists.')
+    else:
+        os.mkdir(datadir)
 
 # Non-negative
 if t_experiment <= 0:
@@ -103,7 +106,10 @@ use_camera = True
 if use_camera:
     from picamera import PiCamera
     camera = PiCamera()
-    camera.start_recording(datadir + 'video.h264')
+    if write_data:
+        camera.start_recording(datadir + 'video.h264')
+    else:
+        camera.start_recording('selfcheck.h264')
 else:
     frame_index = 0
 
@@ -117,18 +123,19 @@ current_frame_index = -1
 motor_status = 0
 led_status = 0
 
-# Start logging
-log_info = open(datadir + 'info.txt', 'a')
-log_info.write('Start: ' + str(start_time) + '\n')
-log_info.write('Duration: ' + str(t_experiment) + '\n')
-log_info.write('Motor: ' + str(t_motor_on) + '\n')
-log_info.write('Motor duration: ' + str(motor_duration) + '\n')
-log_info.write('LED: ' + str(t_led_on) + '\n')
-log_info.write('LED duration: ' + str(led_duration) + '\n')
-log_info.close()
+if write_data:
+    # Start logging
+    log_info = open(datadir + 'info.txt', 'a')
+    log_info.write('Start: ' + str(start_time) + '\n')
+    log_info.write('Duration: ' + str(t_experiment) + '\n')
+    log_info.write('Motor: ' + str(t_motor_on) + '\n')
+    log_info.write('Motor duration: ' + str(motor_duration) + '\n')
+    log_info.write('LED: ' + str(t_led_on) + '\n')
+    log_info.write('LED duration: ' + str(led_duration) + '\n')
+    log_info.close()
 
-log_dose = open(datadir + 'dose.txt', 'a')
-log_dose.close()
+    log_dose = open(datadir + 'dose.txt', 'a')
+    log_dose.close()
 
 while frame_time < t_experiment:
     if use_camera:
@@ -198,34 +205,35 @@ while frame_time < t_experiment:
                         led_status = 0
                         led_voltage = 0
 
-                    # Logging
-                    log_index = open(datadir + 'index.txt', 'a')
-                    log_index.write(str(frame_index) + '\n')
-                    log_index.close()
+                    if write_data:
+                        # Logging
+                        log_index = open(datadir + 'index.txt', 'a')
+                        log_index.write(str(frame_index) + '\n')
+                        log_index.close()
 
-                    log_ts = open(datadir + 'timestamps.txt', 'a')
-                    log_ts.write(str(t) + '\n')
-                    log_ts.close()
+                        log_ts = open(datadir + 'timestamps.txt', 'a')
+                        log_ts.write(str(t) + '\n')
+                        log_ts.close()
 
-                    log_frame_type = open(datadir + 'frame-type.txt', 'a')
-                    log_frame_type.write(str(frame_type) + '\n')
-                    log_frame_type.close()
+                        log_frame_type = open(datadir + 'frame-type.txt', 'a')
+                        log_frame_type.write(str(frame_type) + '\n')
+                        log_frame_type.close()
 
-                    log_motor = open(datadir + 'motor-status.txt', 'a')
-                    log_motor.write(str(motor_status) + '\n')
-                    log_motor.close()
+                        log_motor = open(datadir + 'motor-status.txt', 'a')
+                        log_motor.write(str(motor_status) + '\n')
+                        log_motor.close()
 
-                    log_motor_volt = open(datadir + 'motor-voltage.txt', 'a')
-                    log_motor_volt.write(str(motor_voltage) + '\n')
-                    log_motor_volt.close()
+                        log_motor_volt = open(datadir + 'motor-voltage.txt', 'a')
+                        log_motor_volt.write(str(motor_voltage) + '\n')
+                        log_motor_volt.close()
 
-                    log_led = open(datadir + 'led-status.txt', 'a')
-                    log_led.write(str(led_status) + '\n')
-                    log_led.close()
+                        log_led = open(datadir + 'led-status.txt', 'a')
+                        log_led.write(str(led_status) + '\n')
+                        log_led.close()
 
-                    log_led_volt = open(datadir + 'led-voltage.txt', 'a')
-                    log_led_volt.write(str(led_voltage) + '\n')
-                    log_led_volt.close()
+                        log_led_volt = open(datadir + 'led-voltage.txt', 'a')
+                        log_led_volt.write(str(led_voltage) + '\n')
+                        log_led_volt.close()
 
                 # Verbose output
                 if verbose:
@@ -257,6 +265,14 @@ while frame_time < t_experiment:
 if use_camera:
     camera.stop_recording
     camera.close()
+
+if write_data:
+    log_info = open(datadir + 'info.txt', 'a')
+    log_info.write('End: ' + str(time()) + '\n')
+    log_info.close()
+
+    no_errors = open(datadir + 'no_errors.txt', 'a')
+    no_errors.close()
 
 if verbose:
     print('Wall time ' + '{:.1f}'.format(time() - start_time))
