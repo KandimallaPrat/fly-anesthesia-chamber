@@ -8,6 +8,7 @@ from operator import add, sub
 
 # ser = serial.Serial(port='/dev/ttyUSB0', baudrate=19200, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=60, rtscts=True)
 # s = ser.read(1000)
+# ffmpeg -framerate 30 -i video.h264 -c copy video.mp4
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Arguments
@@ -103,9 +104,20 @@ led_duration = np.array([led_duration])
 # Start camera
 # ----------------------------------------------------------------------------------------------------------------------
 use_camera = True
+frame_rate = 60  # Hard coded for resolution
+# 1920x1080 at 30
+# 1280×720 at 60
+# 640x480 at 90
+
 if use_camera:
     from picamera import PiCamera
     camera = PiCamera()
+    camera.color_effects = (128, 128)
+    camera.framerate = frame_rate
+    camera.resolution = (1280, 720)
+    # camera.awb_mode = 'off'
+    # camera.zoom = (0, 0, 1.0, 1.0) # x, y, w, h
+    # camera.exposure_mode = 'backlight'
     if write_data:
         camera.start_recording(datadir + 'video.h264')
     else:
@@ -115,8 +127,6 @@ else:
 
 # Internal values
 verbose = True
-frame_rate = 30  # Hard coded for camera
-
 start_time = time()
 frame_time = 0
 current_frame_index = -1
@@ -145,7 +155,7 @@ while frame_time < t_experiment:
         if frame_time is None:
             frame_time = 0
 
-        frame_time = float(frame_time)/(10**6)  # convert from long us to float s
+        frame_time = (float(frame_time)/(10**6))  # convert from long us to float s
     else:
         frame_complete = True
         frame_time = (time() - start_time)
