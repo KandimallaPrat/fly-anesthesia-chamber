@@ -145,6 +145,7 @@ if write_data:
     log_info.close()
 
     log_dose = open(datadir + 'dose.txt', 'a')
+    log_dose.write(str(0))
     log_dose.close()
 
 while frame_time < t_experiment:
@@ -286,3 +287,17 @@ if write_data:
 
 if verbose:
     print('Wall time ' + '{:.1f}'.format(time() - start_time))
+
+# Convert txt files to numpy arrays
+for i in ['index', 'timestamps', 'dose', 'frame-type', 'motor-status', 'motor-voltage', 'led-status', 'led-voltage']:
+    temp = np.loadtxt(datadir + i + '.txt', dtype=float)
+    np.save(datadir + i + '.npy', temp)
+
+# In-place conversion from .h264 to .mp4
+try:
+    s = time()
+    os.system('ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
+              ' -i ' + datadir + 'video.h264 -c copy ' + datadir + 'video.mp4')
+    print('Converted video using ffmpeg in ' + '{:.1f}'.format(time()-s) + ' seconds')
+except:
+    print('Failed to convert video using ffmpeg')
