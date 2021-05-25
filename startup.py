@@ -16,8 +16,8 @@ from operator import add, sub
 parser = argparse.ArgumentParser(description='fly-anesthesia')
 parser.add_argument('--datadir', type=str, required=False, default='data/')
 parser.add_argument('--t_experiment', type=float, required=False, default=10)
-parser.add_argument('--t_motor_on', type=float, nargs='+', required=False, default=[])
-parser.add_argument('--motor_duration', type=float, nargs='+', required=False, default=[])
+parser.add_argument('--t_motor_on', type=float, nargs='+', required=False, default=[1,5,8])
+parser.add_argument('--motor_duration', type=float, nargs='+', required=False, default=[1,1,1])
 parser.add_argument('--t_led_on', type=float, nargs='+', required=False, default=[])
 parser.add_argument('--led_duration', type=float, nargs='+', required=False, default=[])
 parser.add_argument('--selfcheck', type=bool, required=False, default=False)
@@ -136,12 +136,29 @@ led_status = 0
 if write_data:
     # Start logging
     log_info = open(datadir + 'info.txt', 'a')
-    log_info.write('Start: ' + str(start_time) + '\n')
-    log_info.write('Duration: ' + str(t_experiment) + '\n')
-    log_info.write('Motor: ' + str(t_motor_on) + '\n')
-    log_info.write('Motor duration: ' + str(motor_duration) + '\n')
-    log_info.write('LED: ' + str(t_led_on) + '\n')
-    log_info.write('LED duration: ' + str(led_duration) + '\n')
+    log_info.write('start,' + str(start_time) + '\n')
+    log_info.write('duration,' + str(t_experiment) + '\n')
+
+    b = ''
+    for a in t_motor_on[0, :]:
+        b = b + ',' + str(a)
+    log_info.write('motor' + b + '\n')
+
+    b = ''
+    for a in motor_duration[0, :]:
+        b = b + ',' + str(a)
+    log_info.write('motor-duration' + b + '\n')
+
+    b = ''
+    for a in t_led_on[0, :]:
+        b = b + ',' + str(a)
+    log_info.write('led' + b + '\n')
+
+    b = ''
+    for a in led_duration[0, :]:
+        b = b + ',' + str(a)
+    log_info.write('led-duration' + b + '\n')
+
     log_info.close()
 
     log_dose = open(datadir + 'dose.txt', 'a')
@@ -279,7 +296,7 @@ if use_camera:
 
 if write_data:
     log_info = open(datadir + 'info.txt', 'a')
-    log_info.write('End: ' + str(time()) + '\n')
+    log_info.write('end,' + str(time()) + '\n')
     log_info.close()
 
     no_errors = open(datadir + 'no_errors.txt', 'a')
