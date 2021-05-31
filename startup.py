@@ -129,8 +129,20 @@ else:
 # ----------------------------------------------------------------------------------------------------------------------
 # Add motors
 # ----------------------------------------------------------------------------------------------------------------------
-motor_2_3 = PWMOutputDevice(12, active_high=True, initial_value=0)
-motors = [motor_2_3]
+# Door
+# 2_1   2_2
+# 1_2   2_3
+# 1_1   1_3
+# Chamber back
+
+motor_1_1 = PWMOutputDevice(12, active_high=True, initial_value=0) # Connector 1, Red/Orange
+motor_1_2 = PWMOutputDevice(1, active_high=True, initial_value=0) # Connector 1, Yellow/Green
+motor_1_3 = PWMOutputDevice(7, active_high=True, initial_value=0) # Connector 1, Blue/Purple
+motor_2_1 = PWMOutputDevice(26, active_high=True, initial_value=0) # Connector 2, Red/Orange
+motor_2_2 = PWMOutputDevice(19, active_high=True, initial_value=0) # Connector 2, Yellow/Green
+motor_2_3 = PWMOutputDevice(13, active_high=True, initial_value=0) # Connector 2, Blue/Purple
+
+motors = [motor_1_1, motor_1_2, motor_1_3, motor_2_1, motor_2_2, motor_2_3]
 
 # Internal values
 verbose = True
