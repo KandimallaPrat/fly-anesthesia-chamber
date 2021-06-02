@@ -336,6 +336,7 @@ for i in ['index', 'timestamps', 'dose', 'frame-type', 'motor-status', 'motor-vo
     np.save(datadir + i + '.npy', temp)
 
 # In-place conversion from .h264 to .mp4
+'''
 try:
     s = time()
     os.system('ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
@@ -343,3 +344,4 @@ try:
     print('Converted video using ffmpeg in ' + '{:.1f}'.format(time()-s) + ' seconds')
 except:
     print('Failed to convert video using ffmpeg')
+'''
