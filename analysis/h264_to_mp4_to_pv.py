@@ -3,7 +3,9 @@ import numpy as np
 
 from time import time
 
-recordings = ['2021-05-31-17-01-41', '2021-05-31-20-27-29', '2021-05-31-23-53-30']
+recordings = ['2021-05-31-17-01-41',
+              '2021-05-31-17-01-41/cuda-default', '2021-05-31-17-01-41/cuda-fast',
+              '2021-05-31-17-01-41/ultrafast', '2021-05-31-20-27-29', '2021-05-31-23-53-30']
 
 for r in recordings:
     datadir = '/mnt/anesthesia/data/' + r + '/'
