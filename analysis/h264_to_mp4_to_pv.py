@@ -4,7 +4,6 @@ import numpy as np
 from time import time
 
 recordings = ['2021-05-31-17-01-41', '2021-05-31-20-27-29', '2021-05-31-23-53-30']
-# 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
 
 for r in recordings:
     datadir = '/mnt/anesthesia/data/' + r + '/'
