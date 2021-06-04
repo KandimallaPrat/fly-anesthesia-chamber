@@ -157,6 +157,7 @@ if write_data:
     log_info = open(datadir + 'info.txt', 'a')
     log_info.write('start,' + str(start_time) + '\n')
     log_info.write('duration,' + str(t_experiment) + '\n')
+    log_info.write('frame-rate,' + str(frame_rate) + '\n')
 
     b = ''
     for a in t_motor_on[0, :]:
