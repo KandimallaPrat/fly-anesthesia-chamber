@@ -17,6 +17,7 @@ from operator import add, sub
 parser = argparse.ArgumentParser(description='fly-anesthesia')
 parser.add_argument('--datadir', type=str, required=False, default='data/')
 parser.add_argument('--t_experiment', type=float, required=False, default=10)
+parser.add_argument('--n_flies', type=float, required=False, default=0)
 parser.add_argument('--t_motor_on', type=float, nargs='+', required=False, default=[])
 parser.add_argument('--motor_duration', type=float, nargs='+', required=False, default=[])
 parser.add_argument('--t_led_on', type=float, nargs='+', required=False, default=[])
@@ -26,6 +27,7 @@ args = parser.parse_args()
 
 # Override inputs
 datadir = args.datadir
+n_flies = args.n_flies
 t_experiment = args.t_experiment  # all in seconds
 t_motor_on = args.t_motor_on
 motor_duration = args.motor_duration
@@ -158,6 +160,7 @@ if write_data:
     log_info.write('start,' + str(start_time) + '\n')
     log_info.write('duration,' + str(t_experiment) + '\n')
     log_info.write('frame-rate,' + str(frame_rate) + '\n')
+    log_info.write('n-flies,' + str(n_flies) + '\n')
 
     b = ''
     for a in t_motor_on[0, :]:
