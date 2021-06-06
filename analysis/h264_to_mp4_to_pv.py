@@ -10,6 +10,10 @@ recordings = ['2021-05-31-17-01-41',
 # TODO: Create basic plots
 # TODO: autofs for /mnt/anesthesia
 # TODO: bash script to run this
+# TODO: Redo motor placement and motor on LED
+# TODO: Camera mount
+# TODO: Anesthesia monitor recording
+# TODO: Fly well labels
 
 for r in recordings:
     datadir = '/mnt/anesthesia/data/' + r + '/'
