@@ -3,9 +3,7 @@ import numpy as np
 
 from time import time
 
-recordings = ['2021-05-31-17-01-41',
-              '2021-05-31-17-01-41/cuda-default', '2021-05-31-17-01-41/cuda-fast',
-              '2021-05-31-17-01-41/ultrafast', '2021-05-31-20-27-29', '2021-05-31-23-53-30']
+recordings = ['2021-06-06-14-17-14']
 
 # TODO: Create basic plots
 # TODO: autofs for /mnt/anesthesia
@@ -28,7 +26,7 @@ for r in recordings:
         info = np.genfromtxt(datadir + 'info.txt', delimiter=',')
     '''
     frame_rate = 60
-    n_flies = 30
+    n_flies = 31
 
     # ffmpeg compression (about 90%)
     if os.path.isfile(datadir + 'video.h264'):  # Check for .h264 file
@@ -37,7 +35,7 @@ for r in recordings:
         else:
             print('compressing .h264 to .mp4...')
             s = time()
-            os.system('ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
+            os.system('/usr/bin/ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
                       ' -i ' + datadir + 'video.h264 -c:v h264_nvenc ' + datadir + 'video-c.mp4')
             print('converted video using ffmpeg in ' + '{:.1f}'.format(time()-s) + ' seconds')
     else:
