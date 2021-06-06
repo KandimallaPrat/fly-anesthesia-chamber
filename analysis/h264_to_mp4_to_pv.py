@@ -7,6 +7,10 @@ recordings = ['2021-05-31-17-01-41',
               '2021-05-31-17-01-41/cuda-default', '2021-05-31-17-01-41/cuda-fast',
               '2021-05-31-17-01-41/ultrafast', '2021-05-31-20-27-29', '2021-05-31-23-53-30']
 
+# TODO: Create basic plots
+# TODO: autofs for /mnt/anesthesia
+# TODO: bash script to run this
+
 for r in recordings:
     datadir = '/mnt/anesthesia/data/' + r + '/'
 
