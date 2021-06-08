@@ -6,8 +6,7 @@ from gpiozero import PWMOutputDevice
 from time import time, sleep, localtime, strftime
 from operator import add, sub
 
-# ser = serial.Serial(port='/dev/ttyUSB0', baudrate=19200, parity=serial.PARITY_EVEN,
-# stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=60, rtscts=True)
+# ser = serial.Serial(port='/dev/ttyUSB0', baudrate=19200, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=60, rtscts=True)
 # s = ser.read(1000)
 # ffmpeg -framerate 30 -i video.h264 -c copy video.mp4
 
@@ -127,6 +126,11 @@ if use_camera:
         camera.start_recording('selfcheck.h264')
 else:
     frame_index = 0
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Start GA monitor
+# ----------------------------------------------------------------------------------------------------------------------
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Add motors

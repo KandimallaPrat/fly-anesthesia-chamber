@@ -1,5 +1,9 @@
 *.asv
 *.m~
+AS3DataExport.csv
+*.raw
+
 .idea/
 data/
+
 
