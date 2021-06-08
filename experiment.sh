@@ -10,4 +10,5 @@ echo TRANSFER
 bash /home/pi/anesthesia-reanimation/transfer_data.sh
 
 # Run "remote" analysis
-ssh jdk20@10.0.0.7 "/home/jdk20/miniconda3/envs/tracking/bin/python /home/remy/Documents/fly-anesthesia-chamber/analysis/h264_to_mp4_to_pv.py"
+echo ANALYSIS
+bash /home/pi/anesthesia-reanimation/process_data.py

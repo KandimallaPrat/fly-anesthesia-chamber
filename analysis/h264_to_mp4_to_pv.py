@@ -14,9 +14,6 @@ args = parser.parse_args()
 # Override inputs
 recordings = args.recordings
 
-if len(recordings) == 0:
-    recordings = [os.environ["EXP_TIME"]]
-
 # TODO: Create basic plots
 # TODO: bash script to run this
 # TODO: Redo motor placement and motor on LED
