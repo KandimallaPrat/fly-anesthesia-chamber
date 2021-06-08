@@ -11,4 +11,4 @@ bash /home/pi/anesthesia-reanimation/transfer_data.sh
 
 # Run "remote" analysis
 echo ANALYSIS
-bash /home/pi/anesthesia-reanimation/process_data.py
+python /home/pi/anesthesia-reanimation/analysis/process_data.py
