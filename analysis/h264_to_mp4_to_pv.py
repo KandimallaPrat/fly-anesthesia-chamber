@@ -12,8 +12,7 @@ parser.add_argument('--recordings', type=str, required=False, default=[])
 args = parser.parse_args()
 
 # Override inputs
-recordings = args.recordings
-print(recordings)
+recordings = [args.recordings]
 
 # TODO: Create basic plots
 # TODO: bash script to run this
