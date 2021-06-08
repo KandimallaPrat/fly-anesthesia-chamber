@@ -6,10 +6,8 @@ from time import time
 recordings = ['2021-06-06-14-17-14']
 
 # TODO: Create basic plots
-# TODO: autofs for /mnt/anesthesia
 # TODO: bash script to run this
 # TODO: Redo motor placement and motor on LED
-# TODO: Camera mount
 # TODO: Anesthesia monitor recording
 # TODO: Fly well labels
 

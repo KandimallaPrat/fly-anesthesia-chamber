@@ -337,6 +337,7 @@ if write_data:
 
 if verbose:
     print('Wall time ' + '{:.1f}'.format(time() - start_time))
+    print('\n')
 
 # Convert txt files to numpy arrays
 for i in ['index', 'timestamps', 'dose', 'frame-type', 'motor-status', 'motor-voltage', 'led-status', 'led-voltage']:
