@@ -33,9 +33,9 @@ for r in recordings:
         for param in info:
             param = param.replace('\n', '').split(',')
             if param[0] == 'frame-rate':
-                frame_rate = int(param[1])
+                frame_rate = int(float(param[1]))
             elif param[0] == 'n-flies':
-                n_flies = int(param[1])
+                n_flies = int(float(param[1]))
 
         print('framerate: ' + str(frame_rate))
         print('n_flies: ' + str(n_flies))
