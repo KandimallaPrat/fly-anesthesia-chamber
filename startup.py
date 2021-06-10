@@ -138,8 +138,11 @@ if use_monitor:
     if os.path.isfile('/home/pi/recording/AS3Rawoutput1.raw'):
         os.system('rm /home/pi/recording/AS3Rawoutput1.raw')
 
+    # Start up Datex Ohmeda S/5 monitor
     monitor = subprocess.Popen(["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
                                 "-interval", "5", "-export", "1", "-waveset", "0"], stdout=subprocess.PIPE)
+
+    mr = [-1, -1, -1]
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Add motors
@@ -150,12 +153,12 @@ if use_monitor:
 # 1_1   1_3
 # Chamber back
 
-motor_1_1 = PWMOutputDevice(12, active_high=True, initial_value=0) # Connector 1, Red/Orange
-motor_1_2 = PWMOutputDevice(1, active_high=True, initial_value=0) # Connector 1, Yellow/Green
-motor_1_3 = PWMOutputDevice(7, active_high=True, initial_value=0) # Connector 1, Blue/Purple
-motor_2_1 = PWMOutputDevice(26, active_high=True, initial_value=0) # Connector 2, Red/Orange
-motor_2_2 = PWMOutputDevice(19, active_high=True, initial_value=0) # Connector 2, Yellow/Green
-motor_2_3 = PWMOutputDevice(13, active_high=True, initial_value=0) # Connector 2, Blue/Purple
+motor_1_1 = PWMOutputDevice(12, active_high=True, initial_value=0)  # Connector 1, Red/Orange
+motor_1_2 = PWMOutputDevice(1, active_high=True, initial_value=0)  # Connector 1, Yellow/Green
+motor_1_3 = PWMOutputDevice(7, active_high=True, initial_value=0)  # Connector 1, Blue/Purple
+motor_2_1 = PWMOutputDevice(26, active_high=True, initial_value=0)  # Connector 2, Red/Orange
+motor_2_2 = PWMOutputDevice(19, active_high=True, initial_value=0)  # Connector 2, Yellow/Green
+motor_2_3 = PWMOutputDevice(13, active_high=True, initial_value=0)  # Connector 2, Blue/Purple
 
 motors = [motor_1_1, motor_1_2, motor_1_3, motor_2_1, motor_2_2, motor_2_3]
 
@@ -282,16 +285,23 @@ while frame_time < t_experiment:
                         led_voltage = 0
 
                     if use_monitor:
-                        if os.path.isfile('/home/pi/recording/AS3DataExport.csv'):
-                            mr = np.genfromtxt('/home/pi/recording/AS3DataExport.csv', skip_header=1,
-                                               usecols=(9, 11, 8), delimiter=',')
+                        # Only every 2.5 seconds
+                        if (frame_index % int(2.5*frame_rate)) == 0:
+                            if os.path.isfile('/home/pi/recording/AS3DataExport.csv'):
+                                os.system('cp /home/pi/recording/AS3DataExport.csv ' + datadir + 'AS3DataExport.csv')
+                                os.system('cp /home/pi/recording/AS3Rawoutput1.raw ' + datadir + 'AS3Rawoutput1.raw')
 
-                            try:
-                                mr = mr[-1, :]
-                            except:
-                                pass
-                        else:
-                            mr = [-1, -1]
+                                mr = np.genfromtxt('/home/pi/recording/AS3DataExport.csv', skip_header=1,
+                                                   usecols=(9, 11, 8), delimiter=',')  # MAC, O2, Dose
+
+                                # Lazy numpy array check
+                                try:
+                                    mr = mr[-1, :]
+                                except:
+                                    pass
+                            else:
+                                # Monitor not writing correctly, check if /dev/ttyUSB0 exists
+                                mr = [-1, -1, -1]
 
                     if write_data:
                         # Logging
@@ -360,8 +370,8 @@ while frame_time < t_experiment:
                         if use_monitor:
                             print('(Frame ' + str(frame_index) + ')' + ' Time ' + '{:.1f}'.format(frame_time) +
                                   ', Remaining ' + '{:.1f}'.format(t_experiment - frame_time) +
-                                  ', Motor ' + ms + ', LED ' + leds + ', MAC ' + str(mr[0]) + ', O2 ' +
-                                  str(mr[1]) + ', Dose ' + str(mr[2]))
+                                  ', Motor ' + ms + ', LED ' + leds + ', O2 ' +
+                                  str(mr[1]) + ', MAC ' + str(mr[0]) + ', Dose ' + str(mr[2]))
                         else:
                             print('(Frame ' + str(frame_index) + ')' + ' Time ' + '{:.1f}'.format(frame_time) +
                                   ', Remaining ' + '{:.1f}'.format(t_experiment - frame_time) +
@@ -397,6 +407,6 @@ if write_data:
         np.save(datadir + i + '.npy', temp)
 
     if use_monitor:
-        for i in ['oxygen', 'ga-mac']:
+        for i in ['oxygen', 'ga-mac', 'dose']:
             temp = np.loadtxt(datadir + i + '.txt', dtype=float)
             np.save(datadir + i + '.npy', temp)
