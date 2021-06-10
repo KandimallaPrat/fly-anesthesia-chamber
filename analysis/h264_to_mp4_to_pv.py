@@ -11,14 +11,12 @@ parser = argparse.ArgumentParser(description='fly-anesthesia-analysis')
 parser.add_argument('--recordings', type=str, required=False, default=[])
 args = parser.parse_args()
 
+
 # Override inputs
 recordings = [args.recordings]
 
 # TODO: Create basic plots
-# TODO: bash script to run this
-# TODO: Redo motor placement and motor on LED
 # TODO: Anesthesia monitor recording
-# TODO: Fly well labels
 
 for r in recordings:
     datadir = '/mnt/anesthesia/data/' + r + '/'

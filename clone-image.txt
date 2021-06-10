@@ -1,0 +1,29 @@
+1. Insert microSD into USB3.0 reader
+2. Check disk name
+sudo fdisk -l
+
+Disk /dev/sdx: 59.5 GiB, 63864569856 bytes, 124735488 sectors
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: dos
+Disk identifier: 0x1995eea1
+
+Device     Boot  Start       End   Sectors  Size Id Type
+/dev/sdx1         8192    532479    524288  256M  c W95 FAT32 (LBA)
+/dev/sdx2       532480 124735487 124203008 59.2G 83 Linux
+
+3. Make sure disk is not mounted
+sudo mount | grep /dev/sdx
+sudo umount /dev/sdx1 /dev/sdx2
+
+4. Copy disk image to Synology
+sudo ddrescue -d /dev/sdx /local/anesthesia/raspberry_os_images/install-1.img /local/anesthesia/raspberry_os_images/image-1.log
+
+5. Restore image to microSD of same size or larger
+sudo ddrescue -f /local/anesthesia/raspberry_os_images/install-1.img /dev/sdx /local/anesthesia/raspberry_os_images/restore-1.log
+
+
+Example:
+sudo ddrescue -d /dev/sde /local/anesthesia/raspberry_os_images/chamber-v1.img /local/anesthesia/raspberry_os_images/chamber-v1.log
+

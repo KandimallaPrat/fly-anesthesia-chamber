@@ -1,5 +1,4 @@
 import os
-import sys
 import subprocess
 import numpy as np
 from time import sleep
@@ -10,7 +9,7 @@ if os.path.isfile('AS3DataExport.csv'):
 if os.path.isfile('AS3Rawoutput1.raw'):
     os.system('rm AS3Rawoutput1.raw')
 
-p = subprocess.Popen(["/usr/bin/mono", "/home/jdk20/Downloads/VSCapture.exe", "-port", "/dev/ttyUSB0",
+monitor = subprocess.Popen(["/usr/bin/mono", "/home/jdk20/Downloads/VSCapture.exe", "-port", "/dev/ttyUSB0",
                       "-interval", "5", "-export", "1", "-waveset", "0"], stdout=subprocess.PIPE)
 
 i = 0
@@ -26,4 +25,4 @@ for i in range(0, 100):
     sleep(1)
     i = i + 1
 
-p.kill()
+monitor.kill()

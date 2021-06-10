@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import argparse
+import subprocess
 
 from gpiozero import PWMOutputDevice
 from time import time, sleep, localtime, strftime
@@ -10,7 +11,7 @@ from operator import add, sub
 # Arguments
 # ----------------------------------------------------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='fly-anesthesia')
-parser.add_argument('--datadir', type=str, required=False, default='data/')
+parser.add_argument('--datadir', type=str, required=False, default='/media/pi/Elements/anesthesia-reanimation/data/')
 parser.add_argument('--t_experiment', type=float, required=False, default=10)
 parser.add_argument('--n_flies', type=float, required=False, default=0)
 parser.add_argument('--t_motor_on', type=float, nargs='+', required=False, default=[])
@@ -128,7 +129,17 @@ else:
 # ----------------------------------------------------------------------------------------------------------------------
 # Start GA monitor
 # ----------------------------------------------------------------------------------------------------------------------
+use_monitor = True
 
+if use_monitor:
+    if os.path.isfile('/home/pi/recording/AS3DataExport.csv'):
+        os.system('rm /home/pi/recording/AS3DataExport.csv')
+
+    if os.path.isfile('/home/pi/recording/AS3Rawoutput1.raw'):
+        os.system('rm /home/pi/recording/AS3Rawoutput1.raw')
+
+    monitor = subprocess.Popen(["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
+                                "-interval", "5", "-export", "1", "-waveset", "0"], stdout=subprocess.PIPE)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Add motors
@@ -186,9 +197,15 @@ if write_data:
 
     log_info.close()
 
-    log_dose = open(datadir + 'dose.txt', 'a')
-    log_dose.write(str(0))
-    log_dose.close()
+    if use_monitor:
+        log_mac = open(datadir + 'ga-mac.txt', 'a')
+        log_mac.close()
+
+        log_dose = open(datadir + 'dose.txt', 'a')
+        log_dose.close()
+
+        log_o2 = open(datadir + 'oxygen.txt', 'a')
+        log_o2.close()
 
 while frame_time < t_experiment:
     if use_camera:
@@ -264,6 +281,18 @@ while frame_time < t_experiment:
                         led_status = 0
                         led_voltage = 0
 
+                    if use_monitor:
+                        if os.path.isfile('/home/pi/recording/AS3DataExport.csv'):
+                            mr = np.genfromtxt('/home/pi/recording/AS3DataExport.csv', skip_header=1,
+                                               usecols=(9, 11, 8), delimiter=',')
+
+                            try:
+                                mr = mr[-1, :]
+                            except:
+                                pass
+                        else:
+                            mr = [-1, -1]
+
                     if write_data:
                         # Logging
                         log_index = open(datadir + 'index.txt', 'a')
@@ -294,6 +323,19 @@ while frame_time < t_experiment:
                         log_led_volt.write(str(led_voltage) + '\n')
                         log_led_volt.close()
 
+                        if use_monitor:
+                            log_mac = open(datadir + 'ga-mac.txt', 'a')
+                            log_mac.write(str(mr[0]) + '\n')
+                            log_mac.close()
+
+                            log_dose = open(datadir + 'dose.txt', 'a')
+                            log_dose.write(str(mr[2]) + '\n')
+                            log_dose.close()
+
+                            log_o2 = open(datadir + 'oxygen.txt', 'a')
+                            log_o2.write(str(mr[1]) + '\n')
+                            log_o2.close()
+
                 # Verbose output
                 if verbose:
                     if (frame_index % frame_rate) == 0:
@@ -315,15 +357,26 @@ while frame_time < t_experiment:
                             else:
                                 leds = 'in ' + '{:.1f}'.format(next_event[0] - frame_time)
 
-                        print('(Frame ' + str(frame_index) + ')' + ' Time ' + '{:.1f}'.format(frame_time) +
-                              ', Remaining ' + '{:.1f}'.format(t_experiment - frame_time) +
-                              ', Dose N/A, Motor ' + ms + ', LED ' + leds)
+                        if use_monitor:
+                            print('(Frame ' + str(frame_index) + ')' + ' Time ' + '{:.1f}'.format(frame_time) +
+                                  ', Remaining ' + '{:.1f}'.format(t_experiment - frame_time) +
+                                  ', Motor ' + ms + ', LED ' + leds + ', MAC ' + str(mr[0]) + ', O2 ' +
+                                  str(mr[1]) + ', Dose ' + str(mr[2]))
+                        else:
+                            print('(Frame ' + str(frame_index) + ')' + ' Time ' + '{:.1f}'.format(frame_time) +
+                                  ', Remaining ' + '{:.1f}'.format(t_experiment - frame_time) +
+                                  ', Motor ' + ms + ', LED ' + leds)
 
     sleep(1./(2*frame_rate))  # Only check camera at the nyquist rate
 
 if use_camera:
     camera.stop_recording
     camera.close()
+
+if use_monitor:
+    os.system('mv /home/pi/recording/AS3DataExport.csv ' + datadir + 'AS3DataExport.csv')
+    os.system('mv /home/pi/recording/AS3Rawoutput1.raw ' + datadir + 'AS3Rawoutput1.raw')
+    monitor.kill()
 
 if write_data:
     log_info = open(datadir + 'info.txt', 'a')
@@ -338,17 +391,12 @@ if verbose:
     print('\n')
 
 # Convert txt files to numpy arrays
-for i in ['index', 'timestamps', 'dose', 'frame-type', 'motor-status', 'motor-voltage', 'led-status', 'led-voltage']:
-    temp = np.loadtxt(datadir + i + '.txt', dtype=float)
-    np.save(datadir + i + '.npy', temp)
+if write_data:
+    for i in ['index', 'timestamps', 'frame-type', 'motor-status', 'motor-voltage', 'led-status', 'led-voltage']:
+        temp = np.loadtxt(datadir + i + '.txt', dtype=float)
+        np.save(datadir + i + '.npy', temp)
 
-# In-place conversion from .h264 to .mp4
-'''
-try:
-    s = time()
-    os.system('ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
-              ' -i ' + datadir + 'video.h264 -c copy ' + datadir + 'video.mp4')
-    print('Converted video using ffmpeg in ' + '{:.1f}'.format(time()-s) + ' seconds')
-except:
-    print('Failed to convert video using ffmpeg')
-'''
+    if use_monitor:
+        for i in ['oxygen', 'ga-mac']:
+            temp = np.loadtxt(datadir + i + '.txt', dtype=float)
+            np.save(datadir + i + '.npy', temp)
