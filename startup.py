@@ -137,7 +137,8 @@ if use_monitor:
 
     if os.path.isfile('/home/pi/recording/AS3Rawoutput1.raw'):
         os.system('rm /home/pi/recording/AS3Rawoutput1.raw')
-
+    
+    # TODO: Add something here to ensure that "ps aux" is always "R+" and not "S", also write stdout and sterr to a file 
     # Start up Datex Ohmeda S/5 monitor
     monitor = subprocess.Popen(["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
                                 "-interval", "5", "-export", "1", "-waveset", "0"], stdout=subprocess.PIPE)
