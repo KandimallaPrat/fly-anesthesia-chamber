@@ -16,7 +16,6 @@ args = parser.parse_args()
 recordings = [args.recordings]
 
 # TODO: Create basic plots
-# TODO: Anesthesia monitor recording
 
 for r in recordings:
     datadir = '/mnt/anesthesia/data/' + r + '/'
@@ -79,7 +78,7 @@ for r in recordings:
                 os.system('/home/jdk20/miniconda3/envs/tracking/bin/trex -i ' + datadir + 'tracking.pv -output_dir ' + datadir +
                           ' -track_max_individuals ' + str(n_flies) +
                           ' -individual_prefix fly -fishdata_dir tracking ' +
-                          '-auto_no_results -nowindow -auto_quit >> ' + datadir + 'trex.log')
+                          '-auto_no_results -nowindow -auto_train -auto_quit >> ' + datadir + 'trex.log')
                 print('trex completed in ' + '{:.1f}'.format(time() - s) + ' seconds')
 
             # -----------------------------------------------------------------

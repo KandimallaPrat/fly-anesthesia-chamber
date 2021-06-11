@@ -1,8 +1,7 @@
 clc; clear variables; close all;
 
-datadir = '/mnt/anesthesia/data/2021-05-31-17-01-41/';
-% datadir = '/mnt/anesthesia/data/2021-05-31-20-27-29/';
-% datadir = '/mnt/anesthesia/data/2021-05-31-23-53-30/';
+% datadir = '/local/anesthesia/data/2021-06-10-17-18-03/';
+datadir = '/local/anesthesia/data/2021-06-10-19-23-34/';
 
 n_flies = 30;
 
@@ -47,7 +46,7 @@ end
 
 cd(datadir)
 figure(1);
-smooth_s = smooth(mean(speed,2), 600, 'moving');
+smooth_s = smooth(mean(speed,2), 1, 'moving');
 box off; hold on;
 h1 = plot(t, ms.*(max(smooth_s)+1), 'r', 'linewidth',2);
 h2 = plot(tt, smooth_s,'k','linewidth',1);
