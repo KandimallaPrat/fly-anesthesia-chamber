@@ -61,7 +61,7 @@ for i = 1:n_flies
     VY(frame, i) = temp_VY;
 end
 
-% Convert from cm to pixels (1280 pixels = 15 cm)
+% Convert from cm to pixels (1280 pixels ~= 15 cm)
 pix_per_cm = 1280/15;
 X_w = pix_per_cm.*X_w;
 Y_w = pix_per_cm.*Y_w;
@@ -70,9 +70,7 @@ Y = pix_per_cm.*Y;
 VX = pix_per_cm.*VX;
 VY = pix_per_cm.*VY;
 
-plot(VX(:,4), VY(:,4),'k.')
-
-return
+% plot(VX(:,4), VY(:,4),'k.')
 
 % for i = 1:n_flies
 %     figure(i)
