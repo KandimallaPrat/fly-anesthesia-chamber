@@ -13,7 +13,7 @@ from operator import add, sub
 parser = argparse.ArgumentParser(description='fly-anesthesia')
 parser.add_argument('--datadir', type=str, required=False, default='/media/pi/Elements/anesthesia-reanimation/data/')
 parser.add_argument('--t_experiment', type=float, required=False, default=10)
-parser.add_argument('--n_flies', type=float, required=False, default=0)
+parser.add_argument('--n_flies', type=float, required=False, default=[0])
 parser.add_argument('--t_motor_on', type=float, nargs='+', required=False, default=[])
 parser.add_argument('--motor_duration', type=float, nargs='+', required=False, default=[])
 parser.add_argument('--t_led_on', type=float, nargs='+', required=False, default=[])
@@ -105,7 +105,7 @@ led_duration = np.array([led_duration])
 # Start camera
 # ----------------------------------------------------------------------------------------------------------------------
 use_camera = True
-frame_rate = 60  # Hard coded for resolution
+frame_rate = 30  # Hard coded for resolution
 # 1920x1080 at 30
 # 1280x720 at 60
 # 640x480 at 90
@@ -115,7 +115,7 @@ if use_camera:
     camera = PiCamera()
     camera.color_effects = (128, 128)
     camera.framerate = frame_rate
-    camera.resolution = (1280, 720)
+    camera.resolution = (1920, 1080)
     # camera.awb_mode = 'off'
     # camera.zoom = (0, 0, 1.0, 1.0) # x, y, w, h
     # camera.exposure_mode = 'backlight'
@@ -183,7 +183,12 @@ if write_data:
     log_info.write('start,' + str(start_time) + '\n')
     log_info.write('duration,' + str(t_experiment) + '\n')
     log_info.write('frame-rate,' + str(frame_rate) + '\n')
-    log_info.write('n-flies,' + str(n_flies) + '\n')
+
+    snf = ''
+    for nf in n_flies:
+        snf = snf + str(nf) + ','
+    snf = snf[0:-1]
+    log_info.write('n-flies,' + snf + '\n')
 
     b = ''
     for a in t_motor_on[0, :]:
