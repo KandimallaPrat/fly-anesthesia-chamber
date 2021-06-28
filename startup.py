@@ -132,18 +132,23 @@ else:
 use_monitor = True
 
 if use_monitor:
+    # Start monitor, remove any previous csv files
     if os.path.isfile('/home/pi/recording/AS3DataExport.csv'):
         os.system('rm /home/pi/recording/AS3DataExport.csv')
 
     if os.path.isfile('/home/pi/recording/AS3Rawoutput1.raw'):
         os.system('rm /home/pi/recording/AS3Rawoutput1.raw')
-    
-    # TODO:
-    # Check time since last sample, if >10 seconds, kill process and restart vscapture
-    # Start up Datex Ohmeda S/5 monitor
-    monitor = subprocess.Popen(["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
-                                "-interval", "5", "-export", "1", "-waveset", "0"], stdout=subprocess.PIPE)
 
+    # Start up Datex Ohmeda S/5 monitor
+    # Error check here to see if /dev/ttyUSB0 is open
+    if os.path.isfile('/dev/ttyUSB0'):
+        monitor = subprocess.Popen(["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
+                                    "-interval", "5", "-export", "1", "-waveset", "0"], stdout=subprocess.PIPE)
+    else:
+        use_monitor = False
+        print('No connected device found at /dev/ttyUSB0, disabling monitor readout')
+
+    # List for holding monitor outputs
     mr = [-1, -1, -1]
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -288,19 +293,37 @@ while frame_time < t_experiment:
 
                     if use_monitor:
                         # Only every 2.5 seconds
+                        # Check time since last sample, if >10 seconds, kill process and restart vscapture
                         if (frame_index % int(2.5*frame_rate)) == 0:
                             if os.path.isfile('/home/pi/recording/AS3DataExport.csv'):
-                                os.system('cp /home/pi/recording/AS3DataExport.csv ' + datadir + 'AS3DataExport.csv')
-                                os.system('cp /home/pi/recording/AS3Rawoutput1.raw ' + datadir + 'AS3Rawoutput1.raw')
+                                # Check if monitor hasn't produced a sample in 20 seconds
+                                if (time() - os.path.getmtime('/home/pi/recording/AS3DataExport.csv')) < 20:
+                                    os.system('cp /home/pi/recording/AS3DataExport.csv ' + datadir + 'AS3DataExport.csv')
+                                    os.system('cp /home/pi/recording/AS3Rawoutput1.raw ' + datadir + 'AS3Rawoutput1.raw')
 
-                                mr = np.genfromtxt('/home/pi/recording/AS3DataExport.csv', skip_header=1,
-                                                   usecols=(9, 11, 8), delimiter=',')  # MAC, O2, Dose
+                                    # Will return nan values for header strings
+                                    mr = np.genfromtxt('/home/pi/recording/AS3DataExport.csv', skip_header=1,
+                                                       usecols=(9, 11, 8), delimiter=',')  # MAC, O2, Dose
 
-                                # Lazy numpy array check
-                                try:
-                                    mr = mr[-1, :]
-                                except:
-                                    pass
+                                    # Lazy numpy array check
+                                    try:
+                                        mr = mr[-1, :]
+                                    except:
+                                        pass
+                                else:
+                                    # Kill monitor process and restart
+                                    monitor.kill()
+
+                                    if os.path.isfile('/dev/ttyUSB0'):
+                                        print('Monitor crash detected, killing process and restarting...')
+                                        monitor = subprocess.Popen(
+                                            ["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
+                                             "-interval", "5", "-export", "1", "-waveset", "0"], stdout=subprocess.PIPE)
+                                    else:
+                                        print('Monitor not responding, killing process. ' +
+                                              '/dev/ttyUSB0 not found, monitor disconnected?')
+                                        use_monitor = False
+
                             else:
                                 # Monitor not writing correctly, check if /dev/ttyUSB0 exists
                                 mr = [-1, -1, -1]
