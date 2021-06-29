@@ -7,6 +7,7 @@ from time import time
 # ----------------------------------------------------------------------------------------------------------------------
 # Arguments
 # ----------------------------------------------------------------------------------------------------------------------
+print('..received ssh command')
 parser = argparse.ArgumentParser(description='fly-anesthesia-analysis')
 parser.add_argument('--recordings', type=str, required=False, default=[])
 args = parser.parse_args()

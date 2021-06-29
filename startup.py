@@ -150,7 +150,7 @@ if use_monitor:
         log_monitor = open(datadir + 'log-monitor.txt', 'a')
 
         monitor = subprocess.Popen(["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
-                                    "-interval", "5", "-export", "1", "-waveset", "0"], stdout=log_monitor, stderr=subprocess.STDOUT)
+                                    "-interval", "5", "-export", "1", "-waveset", "0"], stdout=log_monitor, stderr=log_monitor)
     else:
         use_monitor = False
         print('No connected device found at /dev/ttyUSB0, disabling monitor readout')
@@ -332,7 +332,7 @@ while frame_time < t_experiment:
                                         print('Monitor crash detected, killing process and restarting...')
                                         monitor = subprocess.Popen(
                                             ["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
-                                             "-interval", "5", "-export", "1", "-waveset", "0"], stdout=log_monitor, stderr=subprocess.STDOUT)
+                                             "-interval", "5", "-export", "1", "-waveset", "0"], stdout=log_monitor, stderr=log_monitor)
                                     else:
                                         log_monitor.write('Monitor not responding, killing process. ' +
                                                           '/dev/ttyUSB0 not found, monitor disconnected?\n')
