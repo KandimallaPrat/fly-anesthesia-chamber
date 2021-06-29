@@ -13,7 +13,7 @@ from operator import add, sub
 parser = argparse.ArgumentParser(description='fly-anesthesia')
 parser.add_argument('--datadir', type=str, required=False, default='/media/pi/Elements/anesthesia-reanimation/data/')
 parser.add_argument('--t_experiment', type=float, required=False, default=10)
-parser.add_argument('--n_flies', type=float, required=False, default=[0])
+parser.add_argument('--n_flies', type=float, nargs='+', required=False, default=[0])
 parser.add_argument('--t_motor_on', type=float, nargs='+', required=False, default=[])
 parser.add_argument('--motor_duration', type=float, nargs='+', required=False, default=[])
 parser.add_argument('--t_led_on', type=float, nargs='+', required=False, default=[])
@@ -34,6 +34,10 @@ write_data = not args.selfcheck
 # ----------------------------------------------------------------------------------------------------------------------
 # Argument checking
 # ----------------------------------------------------------------------------------------------------------------------
+# Number of flies should be in a list
+if not isinstance(n_flies, list):
+    n_flies = [n_flies]
+
 # Directory does not exist
 if datadir[-1] != '/':
     datadir = datadir + '/'
@@ -141,9 +145,12 @@ if use_monitor:
 
     # Start up Datex Ohmeda S/5 monitor
     # Error check here to see if /dev/ttyUSB0 is open
-    if os.path.isfile('/dev/ttyUSB0'):
+    dev_check = os.system('ls /dev/ttyUSB0')
+    if dev_check == 0:
+        log_monitor = open(datadir + 'log-monitor.txt', 'a')
+
         monitor = subprocess.Popen(["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
-                                    "-interval", "5", "-export", "1", "-waveset", "0"], stdout=subprocess.PIPE)
+                                    "-interval", "5", "-export", "1", "-waveset", "0"], stdout=log_monitor, stderr=subprocess.STDOUT)
     else:
         use_monitor = False
         print('No connected device found at /dev/ttyUSB0, disabling monitor readout')
@@ -319,12 +326,16 @@ while frame_time < t_experiment:
                                     # Kill monitor process and restart
                                     monitor.kill()
 
-                                    if os.path.isfile('/dev/ttyUSB0'):
+                                    dev_check = os.system('ls /dev/ttyUSB0')
+                                    if dev_check == 0:
+                                        log_monitor.write('Monitor crash detected, killing process and restarting...\n')
                                         print('Monitor crash detected, killing process and restarting...')
                                         monitor = subprocess.Popen(
                                             ["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
-                                             "-interval", "5", "-export", "1", "-waveset", "0"], stdout=subprocess.PIPE)
+                                             "-interval", "5", "-export", "1", "-waveset", "0"], stdout=log_monitor, stderr=subprocess.STDOUT)
                                     else:
+                                        log_monitor.write('Monitor not responding, killing process. ' +
+                                                          '/dev/ttyUSB0 not found, monitor disconnected?\n')
                                         print('Monitor not responding, killing process. ' +
                                               '/dev/ttyUSB0 not found, monitor disconnected?')
                                         use_monitor = False
@@ -417,6 +428,7 @@ if use_monitor:
     os.system('mv /home/pi/recording/AS3DataExport.csv ' + datadir + 'AS3DataExport.csv')
     os.system('mv /home/pi/recording/AS3Rawoutput1.raw ' + datadir + 'AS3Rawoutput1.raw')
     monitor.kill()
+    log_monitor.close()
 
 if write_data:
     log_info = open(datadir + 'info.txt', 'a')

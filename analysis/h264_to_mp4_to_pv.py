@@ -100,7 +100,7 @@ for r in recordings:
                     os.system('/home/toor/miniconda3/envs/tracking/bin/tgrabs -i ' + datadir +
                               'video-c-well-' + str(w) + '.mp4 -o ' + datadir +
                               'tracking-well-' + str(w) + ' -threshold 9 -average_samples 100 -averaging_method mode ' +
-                              '-meta_real_width 15 -reset_average -nowindow >> ' + datadir + 'tgrabs-' + str(w) + '.log')
+                              '-meta_real_width 5 -reset_average -nowindow >> ' + datadir + 'tgrabs-' + str(w) + '.log')
                     print('tgrabs completed in ' + '{:.1f}'.format(time() - s) + ' seconds')
                 else:
                     print('video-c-well-' + str(w) + '.mp4 not found, nothing to convert')
