@@ -16,7 +16,7 @@ args = parser.parse_args()
 recordings = [args.recordings]
 
 # TODO: Create basic plots
-# recordings = ['2021-06-10-19-23-34']
+recordings = ['2021-07-01-17-38-42']
 
 for r in recordings:
     datadir = '/local/anesthesia/data/' + r + '/'
@@ -62,25 +62,36 @@ for r in recordings:
                     if w == 1:
                         x = '0'
                         y = '0'
+                        wi = '750'
+                        he = '504'
                     elif w == 2:
-                        x = 'in_w/3'
+                        x = '700'
                         y = '0'
+                        wi = '523'
+                        he = '504'
                     elif w == 3:
-                        x = 'in_w/(2/3)'
+                        x = '1223'
                         y = '0'
+                        wi = '697'
+                        he = '504'
                     elif w == 4:
                         x = '0'
-                        y = 'in_h/2'
+                        y = '504'
+                        wi = '750'
+                        he = '576'
                     elif w == 5:
-                        x = 'in_w/3'
-                        y = 'in_h/2'
+                        x = '700'
+                        y = '504'
+                        wi = '523'
+                        he = '576'
                     elif w == 6:
-                        x = 'in_w/(2/3)'
-                        y = 'in_h/2'
-
+                        x = '1223'
+                        y = '504'
+                        wi = '697'
+                        he = '576'
                     s = time()
                     os.system('/usr/bin/ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
-                              ' -i ' + datadir + 'video.h264 -vf "crop=in_w/3:in_h/2:'
+                              ' -i ' + datadir + 'video.h264 -vf "crop=' + wi + ':' + he + ':'
                               + x + ':' + y + '" -c:v h264_nvenc ' + datadir +
                               'video-c-well-' + str(w) + '.mp4')
                     print('converted video using ffmpeg in ' + '{:.1f}'.format(time()-s) + ' seconds')
