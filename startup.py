@@ -2,6 +2,9 @@ import os
 import numpy as np
 import argparse
 import subprocess
+import board
+import busio
+import adafruit_drv2605
 
 from gpiozero import PWMOutputDevice
 from time import time, sleep, localtime, strftime
@@ -166,15 +169,17 @@ if use_monitor:
 # 1_2   2_3
 # 1_1   1_3
 # Chamber back
+i2c = busio.I2C(board.SCL, board.SDA)
+drv = adafruit_drv2605.DRV2605(i2c)
+drv.sequence[0] = adafruit_drv2605.Effect(118)  # Strong Buzz - 100%
 
-motor_1_1 = PWMOutputDevice(12, active_high=True, initial_value=0)  # Connector 1, Red/Orange
-motor_1_2 = PWMOutputDevice(1, active_high=True, initial_value=0)  # Connector 1, Yellow/Green
-motor_1_3 = PWMOutputDevice(7, active_high=True, initial_value=0)  # Connector 1, Blue/Purple
-motor_2_1 = PWMOutputDevice(26, active_high=True, initial_value=0)  # Connector 2, Red/Orange
-motor_2_2 = PWMOutputDevice(19, active_high=True, initial_value=0)  # Connector 2, Yellow/Green
-motor_2_3 = PWMOutputDevice(13, active_high=True, initial_value=0)  # Connector 2, Blue/Purple
-
-motors = [motor_1_1, motor_1_2, motor_1_3, motor_2_1, motor_2_2, motor_2_3]
+# motor_1_1 = PWMOutputDevice(12, active_high=True, initial_value=0)  # Connector 1, Red/Orange
+# motor_1_2 = PWMOutputDevice(1, active_high=True, initial_value=0)  # Connector 1, Yellow/Green
+# motor_1_3 = PWMOutputDevice(7, active_high=True, initial_value=0)  # Connector 1, Blue/Purple
+# motor_2_1 = PWMOutputDevice(26, active_high=True, initial_value=0)  # Connector 2, Red/Orange
+# motor_2_2 = PWMOutputDevice(19, active_high=True, initial_value=0)  # Connector 2, Yellow/Green
+# motor_2_3 = PWMOutputDevice(13, active_high=True, initial_value=0)  # Connector 2, Blue/Purple
+# motors = [motor_1_1, motor_1_2, motor_1_3, motor_2_1, motor_2_2, motor_2_3]
 
 # Internal values
 verbose = True
@@ -280,15 +285,17 @@ while frame_time < t_experiment:
                     # Motor on/off
                     if np.any(np.logical_and(frame_time > t_motor_on, frame_time < (t_motor_on + motor_duration))):
                         # Make sure motor is on
-                        for motor in motors:
-                            motor.on()
+                        #for motor in motors:
+                        #    motor.on()
+                        drv.play()
 
                         motor_status = 1
-                        motor_voltage = 3.3
+                        motor_voltage = 5
                     else:
                         # Make sure motor is off
-                        for motor in motors:
-                            motor.off()
+                        #for motor in motors:
+                        #    motor.off()
+                        drv.stop()
 
                         motor_status = 0
                         motor_voltage = 0
