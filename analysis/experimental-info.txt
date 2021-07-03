@@ -1,0 +1,3 @@
+Protocol evaluation:
+2021-07-02-11-58-46: No GA, baseline motor test, [1 1 2 3 4 5] fly chamber number test
+2021-07-02-17-32-54: No GA, baseline motor test, [1 1 2 3 4 5] fly chamber number test
