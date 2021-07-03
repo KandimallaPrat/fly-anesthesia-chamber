@@ -2,6 +2,8 @@
 clc; clear variables; close all;
 
 datadir = '/local/anesthesia/data/2021-07-02-11-58-46/';
+datadir = '/local/anesthesia/data/2021-07-02-15-08-59/';
+datadir = '/local/anesthesia/data/2021-07-02-17-32-54/';
 
 cd(datadir)
 
@@ -78,13 +80,30 @@ for i = 1:length(n_flies)
     end
 end
 
+cs = cumsum(n_flies);
+idx_well = [1 cs(1)];
+for i = 1:length(cs)-1
+     idx_well = [idx_well; cs(i)+1 cs(i+1)];
+end
+
+cd(datadir)
+
 for i = 1:length(n_flies)
-    n_flies(i)
+    subplot(3,2,i);
+    smooth_s = smooth(mean(speed(:,idx_well(i,1):idx_well(i,2)),2), 60, 'moving');
+    box off; hold on;
+    y_max = max(smooth_s(tt > 60));
+    h1 = plot(t, ms.*y_max, 'ro', 'linewidth',2);
+    h2 = plot(tt(tt > 60), smooth_s(tt > 60),'k','linewidth',1);
+    xlim([tt(1) tt(end)]);
+    ylim([0 y_max]);
+    xlabel('time (seconds)');
+    ylabel('mean velocity (cm/s)');
+    title(['Well ', num2str(i), ' (n = ',num2str(n_flies(i)),')']);
 end
 
 return
 
-cd(datadir)
 figure(1);
 smooth_s = smooth(median(speed,2), 1, 'moving');
 box off; hold on;
