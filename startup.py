@@ -154,6 +154,7 @@ if use_monitor:
 
         monitor = subprocess.Popen(["/usr/bin/mono", "/home/pi/recording/VSCapture.exe", "-port", "/dev/ttyUSB0",
                                     "-interval", "5", "-export", "1", "-waveset", "0"], stdout=log_monitor, stderr=log_monitor)
+        print('Monitor found at /dev/ttyUSB0')
     else:
         use_monitor = False
         print('No connected device found at /dev/ttyUSB0, disabling monitor readout')
@@ -285,20 +286,25 @@ while frame_time < t_experiment:
                     # Motor on/off
                     if np.any(np.logical_and(frame_time > t_motor_on, frame_time < (t_motor_on + motor_duration))):
                         # Make sure motor is on
-                        #for motor in motors:
-                        #    motor.on()
-                        drv.play()
+                        try:
+                            drv.play()
+                            motor_status = 1
+                            motor_voltage = 5
+                        except:
+                            print('Could not start drv...')
+                            motor_status = -1  # Start error
+                            motor_voltage = 0
 
-                        motor_status = 1
-                        motor_voltage = 5
                     else:
                         # Make sure motor is off
-                        #for motor in motors:
-                        #    motor.off()
-                        drv.stop()
-
-                        motor_status = 0
-                        motor_voltage = 0
+                        try:
+                            drv.stop()
+                            motor_status = 0
+                            motor_voltage = 0
+                        except:
+                            motor_status = -2  # Stop error
+                            motor_voltage = 0
+                            print('Could not stop drv...')
 
                     # LED on/off
                     if np.any(np.logical_and(frame_time > t_led_on, frame_time < (t_led_on + led_duration))):

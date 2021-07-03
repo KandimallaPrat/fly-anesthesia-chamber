@@ -16,7 +16,7 @@ args = parser.parse_args()
 recordings = [args.recordings]
 
 # TODO: Create basic plots
-recordings = ['2021-07-01-17-38-42']
+# recordings = ['2021-07-02-11-58-46']
 
 for r in recordings:
     datadir = '/local/anesthesia/data/' + r + '/'
