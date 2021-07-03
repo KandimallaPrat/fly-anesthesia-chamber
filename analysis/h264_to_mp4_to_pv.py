@@ -16,7 +16,7 @@ args = parser.parse_args()
 recordings = [args.recordings]
 
 # TODO: Create basic plots
-# recordings = ['2021-07-02-11-58-46']
+# recordings = ['2021-07-03-12-22-39']
 
 for r in recordings:
     datadir = '/local/anesthesia/data/' + r + '/'
@@ -63,32 +63,32 @@ for r in recordings:
                         x = '0'
                         y = '0'
                         wi = '750'
-                        he = '504'
+                        he = '604'
                     elif w == 2:
                         x = '700'
                         y = '0'
                         wi = '523'
-                        he = '504'
+                        he = '604'
                     elif w == 3:
                         x = '1223'
                         y = '0'
                         wi = '697'
-                        he = '504'
+                        he = '604'
                     elif w == 4:
                         x = '0'
-                        y = '504'
+                        y = '604'
                         wi = '750'
-                        he = '576'
+                        he = '476'
                     elif w == 5:
                         x = '700'
-                        y = '504'
+                        y = '604'
                         wi = '523'
-                        he = '576'
+                        he = '476'
                     elif w == 6:
                         x = '1223'
-                        y = '504'
+                        y = '604'
                         wi = '697'
-                        he = '576'
+                        he = '476'
                     s = time()
                     os.system('/usr/bin/ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
                               ' -i ' + datadir + 'video.h264 -vf "crop=' + wi + ':' + he + ':'

@@ -1,3 +1,5 @@
 Protocol evaluation:
 2021-07-02-11-58-46: No GA, baseline motor test, [1 1 2 3 4 5] fly chamber number test
 2021-07-02-17-32-54: No GA, baseline motor test, [1 1 2 3 4 5] fly chamber number test
+
+2021-07-03-12-22-39: 7.0% Sevoflurane in O2 for 15 minutes, O2 continous, motor, [1 1 2 3 4 5] fly chamber number test

@@ -3,7 +3,8 @@ clc; clear variables; close all;
 
 datadir = '/local/anesthesia/data/2021-07-02-11-58-46/';
 datadir = '/local/anesthesia/data/2021-07-02-15-08-59/';
-datadir = '/local/anesthesia/data/2021-07-02-17-32-54/';
+datadir = '/local/anesthesia/data/2021-07-02-17-32-54/'; % No GA
+datadir = '/local/anesthesia/data/2021-07-03-12-22-39/'; % 7.0%
 
 cd(datadir)
 
@@ -90,7 +91,7 @@ cd(datadir)
 
 for i = 1:length(n_flies)
     subplot(3,2,i);
-    smooth_s = smooth(mean(speed(:,idx_well(i,1):idx_well(i,2)),2), 60, 'moving');
+    smooth_s = smooth(mean(speed(:,idx_well(i,1):idx_well(i,2)),2), 1, 'moving');
     box off; hold on;
     y_max = max(smooth_s(tt > 60));
     h1 = plot(t, ms.*y_max, 'ro', 'linewidth',2);
