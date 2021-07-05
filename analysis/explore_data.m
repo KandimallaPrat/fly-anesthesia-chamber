@@ -1,10 +1,10 @@
 %% Gather flies
 clc; clear variables; close all;
 
-datadir = '/local/anesthesia/data/2021-07-02-11-58-46/';
-datadir = '/local/anesthesia/data/2021-07-02-15-08-59/';
 datadir = '/local/anesthesia/data/2021-07-02-17-32-54/'; % No GA
 datadir = '/local/anesthesia/data/2021-07-03-12-22-39/'; % 7.0%
+datadir = '/local/anesthesia/data/2021-07-03-14-18-36/'; % 4.0%
+datadir = '/local/anesthesia/data/2021-07-03-16-15-54/'; % 1.0%
 
 cd(datadir)
 
