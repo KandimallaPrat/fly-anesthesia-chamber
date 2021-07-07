@@ -120,7 +120,7 @@ frame_rate = 30  # Hard coded for resolution
 if use_camera:
     from picamera import PiCamera
     camera = PiCamera()
-    camera.color_effects = (128, 128)
+    camera.color_effects = (128, 128)  # restore color
     camera.framerate = frame_rate
     camera.resolution = (1920, 1080)
     # camera.awb_mode = 'off'
