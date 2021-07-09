@@ -13,7 +13,7 @@ clc; clear variables; close all;
 
 datadir = '/local/anesthesia/data/';
 
-for q = 1
+for q = 4
     switch q
         case 1
             sessiondir = '2021-07-02-17-32-54'; % No GA
@@ -372,8 +372,8 @@ for q = 1
     Fs = frame_rate;  % Sampling Frequency
     
     % Attenuate everything under 0.1 Hz = 5 to 10 Seconds 
-    Fpass = 0.1;              % Passband Frequency
-    Fstop = 0.2;              % Stopband Frequency
+    Fpass = 0.0167;              % Passband Frequency
+    Fstop = 0.1;              % Stopband Frequency
     Dpass = 0.0057563991496;  % Passband Ripple
     Dstop = 0.0001;           % Stopband Attenuation
     dens  = 20;               % Density Factor
@@ -497,7 +497,7 @@ for q = 1
             i1 = nanmean(i1(:));
             ylim([i1-pad i1+pad]);
             title('Sevoflurane (after motor)');
-            
+            4
             % Recovery
             subplot(3,4,n+3);
             plot(x_fly(ref_ts > st(3,1)+600 & ref_ts < st(3,1)+900,idx), y_fly(ref_ts > st(3,1)+600 & ref_ts < st(3,1)+900,idx)); box off;
@@ -570,13 +570,326 @@ for q = 1
         end
     end
     
+    if q == 1
+        figure(5);
+        subplot(1,5,1:4);
+        plot_speed = nanmean(speed_fly(:,~idx_bad),2);
+        plot_speed(isnan(plot_speed)) = 0;
+        plot_speed = filtfilt(filter_coeff, 1, plot_speed);
+        plot_speed(plot_speed < 0) = 0;
+
+        plot(ref_ts, nanmean(speed_fly(:,~idx_bad),2), 'Color', [0.7 0.7 0.7]); box off; hold on;
+        plot(ref_ts, plot_speed, 'Color', [44,123,182]./255, 'Linewidth', 1.5);
+        line(mt, [10 10],'LineWidth',2, 'Color','k')
+        plot(mt(1),10,'ks','MarkerFaceColor','w')
+        plot(mt(2),10,'ks','MarkerFaceColor','w')
+%         line([3900 3900],[0 20],'LineStyle','--','Color','k','LineWidth',1.5);
+%         line([4800 4800],[0 20],'LineStyle','--','Color','k','LineWidth',1.5);
+        xlim([300 ref_ts(end)]);
+        ylim([0 16]);
+        xlabel('Time (s)');
+        ylabel(['Speed (mm/s, n = ', num2str(sum(~idx_bad)), ')']);
+        set(gca,'YTick',0:2:20,'XTick',0:600:10000);
+        
+        subplot(1,5,5);
+        bar([nanmean(nanmean(speed_fly((ref_ts > 300 & ref_ts < mt(1)), ~idx_bad), 2)), ... % Baseline
+        nanmean(nanmean(speed_fly(ref_ts > mt(2),~idx_bad), 2))],'FaceColor','k'); % motor to end GA
+        box off;
+        ylabel('Mean speed (mm/s)');
+        set(gca,'XTick',1:2,'XTickLabel',{'Base','Motor'})
+        
+        cd('/home/jdk20/Documents/ppc-fly-anesthesia');
+        w = 9;
+        h = 3;
+        set(figure(5),'PaperPosition',[0 0 w*1.19 h*1.19]);
+        print(figure(5),'-dpng','no_anesthesia.png');
+%         close all;
+    end
+    
+    if q == 2
+        figure(5);
+        subplot(1,5,1:4);
+        plot_speed = nanmean(speed_fly(:,~idx_bad),2);
+        plot_speed(isnan(plot_speed)) = 0;
+        plot_speed = filtfilt(filter_coeff, 1, plot_speed);
+        plot_speed(plot_speed < 0) = 0;
+
+        plot(ref_ts, nanmean(speed_fly(:,~idx_bad),2), 'Color', [0.7 0.7 0.7]); box off; hold on;
+        plot(ref_ts, plot_speed, 'Color', [44,123,182]./255, 'Linewidth', 1.5);
+        line(mt, [10 10],'LineWidth',2, 'Color','k')
+        plot(mt(1),10,'ks','MarkerFaceColor','w')
+        plot(mt(2),10,'ks','MarkerFaceColor','w')
+        line([3900 3900],[0 20],'LineStyle','--','Color','k','LineWidth',1.5);
+        line([4800 4800],[0 20],'LineStyle','--','Color','k','LineWidth',1.5);
+        xlim([300 ref_ts(end)]);
+        ylim([0 16]);
+        xlabel('Time (s)');
+        ylabel(['Speed (mm/s, n = ', num2str(sum(~idx_bad)), ')']);
+        set(gca,'YTick',0:2:20,'XTick',0:600:10000);
+        
+        subplot(1,5,5);
+        bar([nanmean(nanmean(speed_fly((ref_ts > 300 & ref_ts < st(1,2)), ~idx_bad), 2)), ... % Baseline
+        nanmean(nanmean(speed_fly((ref_ts > st(2,1) & ref_ts < mt(1)),~idx_bad), 2)), ... % start GA to motor
+        nanmean(nanmean(speed_fly((ref_ts > mt(2) & ref_ts < st(2,2)),~idx_bad), 2)), ... % motor to end GA
+        nanmean(nanmean(speed_fly((ref_ts > st(3,1)),~idx_bad), 2))],'FaceColor','k'); % Recovery
+        box off;
+        ylabel('Mean speed (mm/s)');
+        set(gca,'XTick',1:4,'XTickLabel',{'Base','GA','Motor','Rec'})
+        
+        cd('/home/jdk20/Documents/ppc-fly-anesthesia');
+        w = 9;
+        h = 3;
+        set(figure(5),'PaperPosition',[0 0 w*1.19 h*1.19]);
+        print(figure(5),'-dpng','anesthesia_7.png');
+%         close all;
+
+        w = 5;
+        idx = intersect(find(~idx_bad), idx_well(w,1):idx_well(w,2));
+        
+        figure(6);
+        % Baseline
+        subplot(1,4,1);
+        plot(x_fly(ref_ts > st(1,2)-300 & ref_ts < st(1,2),idx), y_fly(ref_ts > st(1,2)-300 & ref_ts < st(1,2),idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        ylabel(['Well ', num2str(w),' (n = ', num2str(length(idx)), ')']);
+        title('Base');
+
+        % GA (before motor)
+        subplot(1,4,2);
+        plot(x_fly(ref_ts > st(2,2)-600 & ref_ts < st(2,2)-300,idx), y_fly(ref_ts > st(2,2)-600 & ref_ts < st(2,2)-300,idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        title('GA (before motor)');
+
+        % GA (after motor)
+        subplot(1,4,3);
+        plot(x_fly(ref_ts > st(2,2)-300 & ref_ts < st(2,2),idx), y_fly(ref_ts > st(2,2)-300 & ref_ts < st(2,2),idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        title('GA (after motor)');
+
+        % Recovery
+        subplot(1,4,4);
+        plot(x_fly(ref_ts > st(3,1)+600 & ref_ts < st(3,1)+900,idx), y_fly(ref_ts > st(3,1)+600 & ref_ts < st(3,1)+900,idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        title('Recovery');
+        
+        w = 12;
+        h = 3;
+        set(figure(6),'PaperPosition',[0 0 w*1.19 h*1.19]);
+        print(figure(6),'-dpng','anesthesia_7_chamber.png');
+        
+    end
+    
+    if q == 3
+        figure(5);
+        subplot(1,5,1:4);
+        plot_speed = nanmean(speed_fly(:,~idx_bad),2);
+        plot_speed(isnan(plot_speed)) = 0;
+        plot_speed = filtfilt(filter_coeff, 1, plot_speed);
+        plot_speed(plot_speed < 0) = 0;
+
+        plot(ref_ts, nanmean(speed_fly(:,~idx_bad),2), 'Color', [0.7 0.7 0.7]); box off; hold on;
+        plot(ref_ts, plot_speed, 'Color', [44,123,182]./255, 'Linewidth', 1.5);
+        line(mt, [10 10],'LineWidth',2, 'Color','k')
+        plot(mt(1),10,'ks','MarkerFaceColor','w')
+        plot(mt(2),10,'ks','MarkerFaceColor','w')
+        line([3900 3900],[0 20],'LineStyle','--','Color','k','LineWidth',1.5);
+        line([4800 4800],[0 20],'LineStyle','--','Color','k','LineWidth',1.5);
+        xlim([300 ref_ts(end)]);
+        ylim([0 16]);
+        xlabel('Time (s)');
+        ylabel(['Speed (mm/s, n = ', num2str(sum(~idx_bad)), ')']);
+        set(gca,'YTick',0:2:20,'XTick',0:600:10000);
+        
+        subplot(1,5,5);
+        bar([nanmean(nanmean(speed_fly((ref_ts > 300 & ref_ts < st(1,2)), ~idx_bad), 2)), ... % Baseline
+        nanmean(nanmean(speed_fly((ref_ts > st(2,1) & ref_ts < mt(1)),~idx_bad), 2)), ... % start GA to motor
+        nanmean(nanmean(speed_fly((ref_ts > mt(2) & ref_ts < st(2,2)),~idx_bad), 2)), ... % motor to end GA
+        nanmean(nanmean(speed_fly((ref_ts > st(3,1)),~idx_bad), 2))],'FaceColor','k'); % Recovery
+        box off;
+        ylabel('Mean speed (mm/s)');
+        set(gca,'XTick',1:4,'XTickLabel',{'Base','GA','Motor','Rec'})
+        
+        cd('/home/jdk20/Documents/ppc-fly-anesthesia');
+        w = 9;
+        h = 3;
+        set(figure(5),'PaperPosition',[0 0 w*1.19 h*1.19]);
+        print(figure(5),'-dpng','anesthesia_4.png');
+%         close all;
+
+        w = 5;
+        idx = intersect(find(~idx_bad), idx_well(w,1):idx_well(w,2));
+        
+        figure(6);
+        % Baseline
+        subplot(1,4,1);
+        plot(x_fly(ref_ts > st(1,2)-300 & ref_ts < st(1,2),idx), y_fly(ref_ts > st(1,2)-300 & ref_ts < st(1,2),idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        ylabel(['Well ', num2str(w),' (n = ', num2str(length(idx)), ')']);
+        title('Base');
+
+        % GA (before motor)
+        subplot(1,4,2);
+        plot(x_fly(ref_ts > st(2,2)-600 & ref_ts < st(2,2)-300,idx), y_fly(ref_ts > st(2,2)-600 & ref_ts < st(2,2)-300,idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        title('GA (before motor)');
+
+        % GA (after motor)
+        subplot(1,4,3);
+        plot(x_fly(ref_ts > st(2,2)-300 & ref_ts < st(2,2),idx), y_fly(ref_ts > st(2,2)-300 & ref_ts < st(2,2),idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        title('GA (after motor)');
+
+        % Recovery
+        subplot(1,4,4);
+        plot(x_fly(ref_ts > st(3,1)+600 & ref_ts < st(3,1)+900,idx), y_fly(ref_ts > st(3,1)+600 & ref_ts < st(3,1)+900,idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        title('Recovery');
+        
+        w = 12;
+        h = 3;
+        set(figure(6),'PaperPosition',[0 0 w*1.19 h*1.19]);
+        print(figure(6),'-dpng','anesthesia_4_chamber.png');
+    end
+    
+    if q == 4
+        figure(5);
+        subplot(1,5,1:4);
+        plot_speed = nanmean(speed_fly(:,~idx_bad),2);
+        plot_speed(isnan(plot_speed)) = 0;
+        plot_speed = filtfilt(filter_coeff, 1, plot_speed);
+        plot_speed(plot_speed < 0) = 0;
+
+        plot(ref_ts, nanmean(speed_fly(:,~idx_bad),2), 'Color', [0.7 0.7 0.7]); box off; hold on;
+        plot(ref_ts, plot_speed, 'Color', [44,123,182]./255, 'Linewidth', 1.5);
+        line(mt, [10 10],'LineWidth',2, 'Color','k')
+        plot(mt(1),10,'ks','MarkerFaceColor','w')
+        plot(mt(2),10,'ks','MarkerFaceColor','w')
+        line([3900 3900],[0 20],'LineStyle','--','Color','k','LineWidth',1.5);
+        line([4800 4800],[0 20],'LineStyle','--','Color','k','LineWidth',1.5);
+        xlim([300 ref_ts(end)]);
+        ylim([0 16]);
+        xlabel('Time (s)');
+        ylabel(['Speed (mm/s, n = ', num2str(sum(~idx_bad)), ')']);
+        set(gca,'YTick',0:2:20,'XTick',0:600:10000);
+        
+        subplot(1,5,5);
+        bar([nanmean(nanmean(speed_fly((ref_ts > 300 & ref_ts < st(1,2)), ~idx_bad), 2)), ... % Baseline
+        nanmean(nanmean(speed_fly((ref_ts > st(2,1) & ref_ts < mt(1)),~idx_bad), 2)), ... % start GA to motor
+        nanmean(nanmean(speed_fly((ref_ts > mt(2) & ref_ts < st(2,2)),~idx_bad), 2)), ... % motor to end GA
+        nanmean(nanmean(speed_fly((ref_ts > st(3,1)),~idx_bad), 2))],'FaceColor','k'); % Recovery
+        box off;
+        ylabel('Mean speed (mm/s)');
+        set(gca,'XTick',1:4,'XTickLabel',{'Base','GA','Motor','Rec'})
+        
+        cd('/home/jdk20/Documents/ppc-fly-anesthesia');
+        w = 9;
+        h = 3;
+        set(figure(5),'PaperPosition',[0 0 w*1.19 h*1.19]);
+        print(figure(5),'-dpng','anesthesia_1.png');
+%         close all;
+
+         w = 5;
+        idx = intersect(find(~idx_bad), idx_well(w,1):idx_well(w,2));
+        
+        figure(6);
+        % Baseline
+        subplot(1,4,1);
+        plot(x_fly(ref_ts > st(1,2)-300 & ref_ts < st(1,2),idx), y_fly(ref_ts > st(1,2)-300 & ref_ts < st(1,2),idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        ylabel(['Well ', num2str(w),' (n = ', num2str(length(idx)), ')']);
+        title('Base');
+
+        % GA (before motor)
+        subplot(1,4,2);
+        plot(x_fly(ref_ts > st(2,2)-600 & ref_ts < st(2,2)-300,idx), y_fly(ref_ts > st(2,2)-600 & ref_ts < st(2,2)-300,idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        title('GA (before motor)');
+
+        % GA (after motor)
+        subplot(1,4,3);
+        plot(x_fly(ref_ts > st(2,2)-300 & ref_ts < st(2,2),idx), y_fly(ref_ts > st(2,2)-300 & ref_ts < st(2,2),idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        title('GA (after motor)');
+
+        % Recovery
+        subplot(1,4,4);
+        plot(x_fly(ref_ts > st(3,1)+600 & ref_ts < st(3,1)+900,idx), y_fly(ref_ts > st(3,1)+600 & ref_ts < st(3,1)+900,idx)); box off;
+        i0 = x_fly(:,idx);
+        i0 = nanmean(i0(:));
+        xlim([i0-pad i0+pad]);
+        i1 = y_fly(:,idx);
+        i1 = nanmean(i1(:));
+        ylim([i1-pad i1+pad]);
+        title('Recovery');
+        
+        w = 12;
+        h = 3;
+        set(figure(6),'PaperPosition',[0 0 w*1.19 h*1.19]);
+        print(figure(6),'-dpng','anesthesia_1_chamber.png');
+    end
+    
+    
     % 2D heatmap by well for some timepoints
 
     % Scatter plot of individual mean fly speed for baseline vs GA
 
     % Dose-response curve across sessions for movement during GA
     
-    % Histogram or CDF of individual (or group) fly speeds
 end
 
 
