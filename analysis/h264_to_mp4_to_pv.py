@@ -16,7 +16,23 @@ args = parser.parse_args()
 recordings = [args.recordings]
 
 # TODO: Create basic plots
-# recordings = ['2021-07-03-12-22-39']
+recordings = ['2021-07-07-11-12-26',  # 3.0% sevoflurane
+'2021-07-07-12-39-58',  # 0.0% sevoflurane
+'2021-07-07-14-54-04',  # 7.0% sevoflurane
+'2021-07-08-10-56-08',  # 2.0% sevoflurane
+'2021-07-08-12-23-52',  # 5.0% sevoflurane
+'2021-07-08-13-58-04',  # 6.0% sevoflurane
+'2021-07-08-16-04-45']  # 8.0% sevoflurane
+
+# New camera position
+'2021-07-06-19-50-53'  # Test video
+'2021-07-07-11-12-26'  # 3.0% sevoflurane
+'2021-07-07-12-39-58'  # 0.0% sevoflurane
+'2021-07-07-14-54-04'  # 7.0% sevoflurane
+'2021-07-08-10-56-08'  # 2.0% sevoflurane
+'2021-07-08-12-23-52'  # 5.0% sevoflurane
+'2021-07-08-13-58-04'  # 6.0% sevoflurane
+'2021-07-08-16-04-45'  # 8.0% sevoflurane
 
 for r in recordings:
     datadir = '/local/anesthesia/data/' + r + '/'
@@ -46,7 +62,7 @@ for r in recordings:
                 print('compressing .h264 to .mp4...')
                 s = time()
                 os.system('/usr/bin/ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
-                          ' -i ' + datadir + 'video.h264 -c:v h264_nvenc ' + datadir + 'video-c.mp4')
+                          ' -i ' + datadir + 'video.h264 -vf "transpose=2,transpose=2",lenscorrection=k1=-0.15:k2=0 -c:v h264_nvenc ' + datadir + 'video-c.mp4')
                 print('converted video using ffmpeg in ' + '{:.1f}'.format(time()-s) + ' seconds')
         else:
             print('video.h264 not found, skipping compression')
@@ -59,6 +75,8 @@ for r in recordings:
                 else:
                     print('compressing well ' + str(w) + ' from .h264 to .mp4...')
 
+                    '''
+                    # Old camera position (pre 7-7-2021)
                     if w == 1:
                         x = '0'
                         y = '0'
@@ -89,9 +107,41 @@ for r in recordings:
                         y = '604'
                         wi = '697'
                         he = '476'
+                    '''
+                    if w == 1:
+                        x = '323'
+                        y = '163'
+                        wi = '350'
+                        he = '350'
+                    elif w == 2:
+                        x = '731'
+                        y = '169'
+                        wi = '350'
+                        he = '350'
+                    elif w == 3:
+                        x = '1138'
+                        y = '174'
+                        wi = '350'
+                        he = '350'
+                    elif w == 4:
+                        x = '316'
+                        y = '572'
+                        wi = '350'
+                        he = '350'
+                    elif w == 5:
+                        x = '729'
+                        y = '574'
+                        wi = '350'
+                        he = '350'
+                    elif w == 6:
+                        x = '1134'
+                        y = '579'
+                        wi = '350'
+                        he = '350'
+
                     s = time()
                     os.system('/usr/bin/ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
-                              ' -i ' + datadir + 'video.h264 -vf "crop=' + wi + ':' + he + ':'
+                              ' -i ' + datadir + 'video.h264 -vf "transpose=2,transpose=2",lenscorrection=k1=-0.15:k2=0,"crop=' + wi + ':' + he + ':'
                               + x + ':' + y + '" -c:v h264_nvenc ' + datadir +
                               'video-c-well-' + str(w) + '.mp4')
                     print('converted video using ffmpeg in ' + '{:.1f}'.format(time()-s) + ' seconds')
@@ -111,8 +161,8 @@ for r in recordings:
                     s = time()
                     os.system('/home/toor/miniconda3/envs/tracking/bin/tgrabs -i ' + datadir +
                               'video-c-well-' + str(w) + '.mp4 -o ' + datadir +
-                              'tracking-well-' + str(w) + ' -threshold 9 -average_samples 100 -averaging_method mode ' +
-                              '-meta_real_width 5 -reset_average -nowindow >> ' + datadir + 'tgrabs-' + str(w) + '.log')
+                              'tracking-well-' + str(w) + ' -threshold 15 -average_samples 300 -averaging_method mode ' +
+                              '-meta_real_width 3.3697 -reset_average -nowindow >> ' + datadir + 'tgrabs-' + str(w) + '.log')
                     print('tgrabs completed in ' + '{:.1f}'.format(time() - s) + ' seconds')
                 else:
                     print('video-c-well-' + str(w) + '.mp4 not found, nothing to convert')
