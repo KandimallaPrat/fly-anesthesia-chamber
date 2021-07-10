@@ -16,23 +16,17 @@ args = parser.parse_args()
 recordings = [args.recordings]
 
 # TODO: Create basic plots
-recordings = ['2021-07-07-11-12-26',  # 3.0% sevoflurane
-'2021-07-07-12-39-58',  # 0.0% sevoflurane
-'2021-07-07-14-54-04',  # 7.0% sevoflurane
-'2021-07-08-10-56-08',  # 2.0% sevoflurane
-'2021-07-08-12-23-52',  # 5.0% sevoflurane
-'2021-07-08-13-58-04',  # 6.0% sevoflurane
-'2021-07-08-16-04-45']  # 8.0% sevoflurane
-
-# New camera position
-'2021-07-06-19-50-53'  # Test video
-'2021-07-07-11-12-26'  # 3.0% sevoflurane
-'2021-07-07-12-39-58'  # 0.0% sevoflurane
-'2021-07-07-14-54-04'  # 7.0% sevoflurane
-'2021-07-08-10-56-08'  # 2.0% sevoflurane
-'2021-07-08-12-23-52'  # 5.0% sevoflurane
-'2021-07-08-13-58-04'  # 6.0% sevoflurane
-'2021-07-08-16-04-45'  # 8.0% sevoflurane
+'''
+recordings = ['2021-07-09-15-41-47',  # Motor Test 1
+              '2021-07-09-17-22-28',  # Motor Test 2
+              '2021-07-07-11-12-26',  # 3.0% sevoflurane
+              '2021-07-07-12-39-58',  # 0.0% sevoflurane
+              '2021-07-07-14-54-04',  # 7.0% sevoflurane
+              '2021-07-08-10-56-08',  # 2.0% sevoflurane
+              '2021-07-08-12-23-52',  # 5.0% sevoflurane
+              '2021-07-08-13-58-04',  # 6.0% sevoflurane
+              '2021-07-08-16-04-45']  # 8.0% sevoflurane
+'''
 
 for r in recordings:
     datadir = '/local/anesthesia/data/' + r + '/'
@@ -161,7 +155,7 @@ for r in recordings:
                     s = time()
                     os.system('/home/toor/miniconda3/envs/tracking/bin/tgrabs -i ' + datadir +
                               'video-c-well-' + str(w) + '.mp4 -o ' + datadir +
-                              'tracking-well-' + str(w) + ' -threshold 15 -average_samples 300 -averaging_method mode ' +
+                              'tracking-well-' + str(w) + ' -threshold 15 -average_samples 100 -averaging_method mode ' +
                               '-meta_real_width 3.3697 -reset_average -nowindow >> ' + datadir + 'tgrabs-' + str(w) + '.log')
                     print('tgrabs completed in ' + '{:.1f}'.format(time() - s) + ' seconds')
                 else:

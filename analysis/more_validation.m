@@ -13,16 +13,30 @@ clc; clear variables; close all;
 
 datadir = '/local/anesthesia/data/';
 
-for q = 4
+for q = 5
     switch q
         case 1
             sessiondir = '2021-07-02-17-32-54'; % No GA
+            trex_conversion_number = 5;
+            
+            % magic centroid x,y coordinates
+            center = [540 300; 285 300; 210 300; 530 240; 270 260; 200 250];
         case 2
             sessiondir = '2021-07-03-12-22-39'; % 7.0%
+            trex_conversion_number = 5;
+            center = [540 300; 285 300; 210 300; 530 240; 270 260; 200 250];
         case 3
             sessiondir = '2021-07-03-14-18-36'; % 4.0%
+            trex_conversion_number = 5;
+            center = [540 300; 285 300; 210 300; 530 240; 270 260; 200 250];
         case 4
             sessiondir = '2021-07-03-16-15-54'; % 1.0%
+            trex_conversion_number = 5;
+            center = [540 300; 285 300; 210 300; 530 240; 270 260; 200 250];
+        case 5
+            sessiondir = '2021-07-09-15-41-47'; % Motor test 1
+            trex_conversion_number = 3.3697;
+            center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];
     end
     
     disp(['session: ', sessiondir])
@@ -161,9 +175,6 @@ for q = 4
     % -------------------------------------------------------------------------
     outlier_th = 300; % values that exceed twice the ~radius (150 pixels) 
     tp_th = 30; % exceeds 10 pixels of movement in 1 frame (about 90 mm/s)
-    
-    % magic centroid x,y coordinates
-    center = [540 300; 285 300; 210 300; 530 240; 270 260; 200 250];
 
     % matrix to hold proccessed coordinates
     x_fly = NaN(size(ref_ts,1), sum(n_flies));
@@ -198,9 +209,9 @@ for q = 4
 
             % convert x,y from (incorrect) cm to pixels
             % magic number 5 is the value fed to trex (well ~300 pixels diameter)
-            x = x.*(well_pixel_dims(w,1)/5);
-            y = y.*(well_pixel_dims(w,1)/5); 
-
+            x = x.*(well_pixel_dims(w,1)/trex_conversion_number);
+            y = y.*(well_pixel_dims(w,1)/trex_conversion_number); 
+            
             % determine x,y coords that fall outside well
     %         center = [nanmedian(x), nanmedian(y)]; % somewhere near the center of the wel
             d = sqrt(nansum(([x y] - center(w,:)).^2, 2));
@@ -255,96 +266,96 @@ for q = 4
     % Flies to ignore for figures
     idx_bad = (sum(artifacts(:,2:3),2) > 1)';
     
-    % -------------------------------------------------------------------------
-    % Video
-    % -------------------------------------------------------------------------
-    cd([datadir, sessiondir]);
-    for w = 1:n_wells
-        if ~isfile(['tracking-video-c-well-', num2str(w),'.avi'])
-            vr = VideoReader(['video-c-well-', num2str(w),'.mp4']);
-            disp(['tracking video-c-well-', num2str(w),'.mp4'])
-            num_frames = floor(vr.Duration*vr.FrameRate);
-
-            if num_frames ~= length(ref_ts)
-                error(['error: num_frames: ', num2str(num_frames),', but ref_ts: ', num2str(length(ref_ts))]);
-            end
-
-            vw = VideoWriter(['tracking-video-c-well-', num2str(w),'.avi']);
-            vw.Quality = 100;
-            vw.FrameRate = frame_rate;
-            open(vw);
-
-            ds = 30; % downsample rate
-            frame_counter = 0;
-            pad = 10;
-            set(figure(1), 'Position',  [1000, 500, vr.width+pad, vr.height+pad])
-            for i = 1:ds:num_frames
-                f = read(vr, i);
-
-                image(f); hold on; box off;
-                plot(x_fly_outliers(i, idx_well(w,1):idx_well(w,2)), y_fly_outliers(i, idx_well(w,1):idx_well(w,2)),'ro');
-
-                if ref_ts(i) < st(1,2)
-                    text(vr.width/2, 50, 'Baseline', 'Color', 'w')
-                elseif ref_ts(i) >= st(2,1) && ref_ts(i) <= st(2,2)
-                    text(vr.width/2, 50, ['Sevoflurane ', num2str(exp_dose),'%'], 'Color', 'w')
-                elseif ref_ts(i) > st(3,1)
-                    text(vr.width/2, 50, 'Recovery', 'Color', 'w')
-                end
-
-                if ref_ts(i) >= mt(1) && ref_ts(i) <= mt(2)
-                    text(vr.width/2, 75, 'Motor On', 'Color', 'r')
-                end
-
-                set(gca,'XTickLabel',[],'YTickLabel',[],'nextplot','replacechildren', ...
-                'Units','pixels','Position', [5 5 vr.width vr.height]);
-
-                write_frame = getframe(gcf);
-
-                % Error checking
-                if size(write_frame.cdata, 1) > (vr.height+pad)
-    %                 disp(['trimming ', num2str(size(write_frame.cdata, 1) - (vr.height+pad)),' px from height']);
-                    write_frame.cdata = write_frame.cdata(1:(vr.height+pad), :, :);
-                end
-
-                if size(write_frame.cdata, 2) > (vr.width+pad)
-    %                 disp(['trimming ', num2str(size(write_frame.cdata, 2) - (vr.width+pad)),' px from width']);
-                    write_frame.cdata = write_frame.cdata(:, 1:(vr.width+pad), :);
-                end
-
-                if size(write_frame.cdata, 1) < (vr.height+pad)
-    %                 disp(['adding ', num2str(size(write_frame.cdata, 1) - (vr.height+pad)),' px from height']);
-                    temp = zeros(vr.height+pad, vr.width+pad, 3);
-                    temp(1:size(write_frame.cdata,1), 1:size(write_frame.cdata,2), :) = write_frame.cdata;
-                    write_frame.cdata = uint8(temp);
-                end
-
-                if size(write_frame.cdata, 2) < (vr.width+pad)
-    %                 disp(['adding ', num2str(size(write_frame.cdata, 2) - (vr.width+pad)),' px from width']);
-                    temp = zeros(vr.height+pad, vr.width+pad, 3);
-                    temp(1:size(write_frame.cdata,1), 1:size(write_frame.cdata,2), :) = write_frame.cdata;
-                    write_frame.cdata = uint8(temp);
-                end
-
-                try
-                    writeVideo(vw, write_frame);
-                catch
-                    disp(['improper frame ', num2str(i),' (size: ', num2str(size(write_frame.cdata)),')']);
-                    keyboard
-                end
-
-                frame_counter = frame_counter + ds;
-
-                if frame_counter > (5*60*frame_rate) % every 5 minutes worth of frames
-                    disp(['processed ', num2str(100*(i/num_frames)), '%'])
-                    frame_counter = 0;
-                end
-            end
-            close(gcf);
-            close(vw);
-            disp(' ');
-        end
-    end
+%     % -------------------------------------------------------------------------
+%     % Video
+%     % -------------------------------------------------------------------------
+%     cd([datadir, sessiondir]);
+%     for w = 1:n_wells
+%         if ~isfile(['tracking-video-c-well-', num2str(w),'.avi'])
+%             vr = VideoReader(['video-c-well-', num2str(w),'.mp4']);
+%             disp(['tracking video-c-well-', num2str(w),'.mp4'])
+%             num_frames = floor(vr.Duration*vr.FrameRate);
+% 
+%             if num_frames ~= length(ref_ts)
+%                 error(['error: num_frames: ', num2str(num_frames),', but ref_ts: ', num2str(length(ref_ts))]);
+%             end
+% 
+%             vw = VideoWriter(['tracking-video-c-well-', num2str(w),'.avi']);
+%             vw.Quality = 100;
+%             vw.FrameRate = frame_rate;
+%             open(vw);
+% 
+%             ds = 30; % downsample rate
+%             frame_counter = 0;
+%             pad = 10;
+%             set(figure(1), 'Position',  [1000, 500, vr.width+pad, vr.height+pad])
+%             for i = 1:ds:num_frames
+%                 f = read(vr, i);
+% 
+%                 image(f); hold on; box off;
+%                 plot(x_fly_outliers(i, idx_well(w,1):idx_well(w,2)), y_fly_outliers(i, idx_well(w,1):idx_well(w,2)),'ro');
+% 
+%                 if ref_ts(i) < st(1,2)
+%                     text(vr.width/2, 50, 'Baseline', 'Color', 'w')
+%                 elseif ref_ts(i) >= st(2,1) && ref_ts(i) <= st(2,2)
+%                     text(vr.width/2, 50, ['Sevoflurane ', num2str(exp_dose),'%'], 'Color', 'w')
+%                 elseif ref_ts(i) > st(3,1)
+%                     text(vr.width/2, 50, 'Recovery', 'Color', 'w')
+%                 end
+% 
+%                 if ref_ts(i) >= mt(1) && ref_ts(i) <= mt(2)
+%                     text(vr.width/2, 75, 'Motor On', 'Color', 'r')
+%                 end
+% 
+%                 set(gca,'XTickLabel',[],'YTickLabel',[],'nextplot','replacechildren', ...
+%                 'Units','pixels','Position', [5 5 vr.width vr.height]);
+% 
+%                 write_frame = getframe(gcf);
+% 
+%                 % Error checking
+%                 if size(write_frame.cdata, 1) > (vr.height+pad)
+%     %                 disp(['trimming ', num2str(size(write_frame.cdata, 1) - (vr.height+pad)),' px from height']);
+%                     write_frame.cdata = write_frame.cdata(1:(vr.height+pad), :, :);
+%                 end
+% 
+%                 if size(write_frame.cdata, 2) > (vr.width+pad)
+%     %                 disp(['trimming ', num2str(size(write_frame.cdata, 2) - (vr.width+pad)),' px from width']);
+%                     write_frame.cdata = write_frame.cdata(:, 1:(vr.width+pad), :);
+%                 end
+% 
+%                 if size(write_frame.cdata, 1) < (vr.height+pad)
+%     %                 disp(['adding ', num2str(size(write_frame.cdata, 1) - (vr.height+pad)),' px from height']);
+%                     temp = zeros(vr.height+pad, vr.width+pad, 3);
+%                     temp(1:size(write_frame.cdata,1), 1:size(write_frame.cdata,2), :) = write_frame.cdata;
+%                     write_frame.cdata = uint8(temp);
+%                 end
+% 
+%                 if size(write_frame.cdata, 2) < (vr.width+pad)
+%     %                 disp(['adding ', num2str(size(write_frame.cdata, 2) - (vr.width+pad)),' px from width']);
+%                     temp = zeros(vr.height+pad, vr.width+pad, 3);
+%                     temp(1:size(write_frame.cdata,1), 1:size(write_frame.cdata,2), :) = write_frame.cdata;
+%                     write_frame.cdata = uint8(temp);
+%                 end
+% 
+%                 try
+%                     writeVideo(vw, write_frame);
+%                 catch
+%                     disp(['improper frame ', num2str(i),' (size: ', num2str(size(write_frame.cdata)),')']);
+%                     keyboard
+%                 end
+% 
+%                 frame_counter = frame_counter + ds;
+% 
+%                 if frame_counter > (5*60*frame_rate) % every 5 minutes worth of frames
+%                     disp(['processed ', num2str(100*(i/num_frames)), '%'])
+%                     frame_counter = 0;
+%                 end
+%             end
+%             close(gcf);
+%             close(vw);
+%             disp(' ');
+%         end
+%     end
     
   	% -------------------------------------------------------------------------
     % Conversion

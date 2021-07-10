@@ -1,9 +1,14 @@
 clc; close all;
 
+cd('/local/anesthesia/data/2021-07-09-15-41-47');
+
+vr = VideoReader('video-c.mp4');
+a = read(vr,1);
+
 rng(42);
 [centers, radii, metric] = imfindcircles(a, [150 200],'Sensitivity',0.97,'Method','TwoStage');
 
-i0 = [5 4 1 6 2 3];
+i0 = [5 4 3 6 1 2];
 centers = centers(i0,:);
 radii = radii(i0,:);
 metric = metric(i0,:);
