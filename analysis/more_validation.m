@@ -10,10 +10,11 @@ clc; clear variables; close all;
 % frame.npy : videoframe the fly metrics correspond to, bugged, not
 % consistent across flies
 
-
 datadir = '/local/anesthesia/data/';
 
-for q = 5
+well_speed = [];
+
+for q = 6
     switch q
         case 1
             sessiondir = '2021-07-02-17-32-54'; % No GA
@@ -35,6 +36,34 @@ for q = 5
             center = [540 300; 285 300; 210 300; 530 240; 270 260; 200 250];
         case 5
             sessiondir = '2021-07-09-15-41-47'; % Motor test 1
+            trex_conversion_number = 3.3697;
+            center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];
+        case 6
+            sessiondir = '2021-07-10-14-29-28'; % Sevoflurane 0% in air
+            trex_conversion_number = 3.3697;
+            center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];
+        case 7
+            sessiondir = '2021-07-07-12-39-58'; % Sevoflurane 0% in O2%
+            trex_conversion_number = 3.3697;
+            center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];
+        case 8
+            sessiondir = '2021-07-08-10-56-08'; % Sevoflurane 2.0% in O2%
+            trex_conversion_number = 3.3697;
+            center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];
+        case 9
+            sessiondir = '2021-07-08-12-23-52'; % Sevoflurane 5.0% in O2%
+            trex_conversion_number = 3.3697;
+            center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];
+        case 10
+            sessiondir = '2021-07-08-13-58-04'; % Sevoflurane 6.0% in O2%
+            trex_conversion_number = 3.3697;
+            center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];
+        case 11
+            sessiondir = '2021-07-07-14-54-04'; % Sevoflurane 7.0% in O2%
+            trex_conversion_number = 3.3697;
+            center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];
+        case 12
+            sessiondir = '2021-07-08-16-04-45'; % Sevoflurane 8.0% in O2%
             trex_conversion_number = 3.3697;
             center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];
     end
@@ -426,6 +455,8 @@ for q = 5
             xlabel('Time (s)');
             ylabel('Speed (mm/s)');
             title(['Well ', num2str(w),' (n = ', num2str(length(idx)), ')']);
+            
+            well_speed = [well_speed; [length(idx) nanmean(nanmean(speed_fly(ref_ts < 2000,idx),2))]];
         end
     end
     

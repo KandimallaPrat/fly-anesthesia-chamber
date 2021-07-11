@@ -17,10 +17,7 @@ recordings = [args.recordings]
 
 # TODO: Create basic plots
 '''
-recordings = ['2021-07-09-15-41-47',  # Motor Test 1
-              '2021-07-09-17-22-28',  # Motor Test 2
-              '2021-07-07-11-12-26',  # 3.0% sevoflurane
-              '2021-07-07-12-39-58',  # 0.0% sevoflurane
+recordings = ['2021-07-07-12-39-58',  # 0.0% sevoflurane
               '2021-07-07-14-54-04',  # 7.0% sevoflurane
               '2021-07-08-10-56-08',  # 2.0% sevoflurane
               '2021-07-08-12-23-52',  # 5.0% sevoflurane
