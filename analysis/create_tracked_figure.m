@@ -1,6 +1,6 @@
-function create_tracked_video(sessiondir)
+function create_tracked_figure(sessiondir)
     datadir = '/local/anesthesia/data/';
-    
+
     trex_conversion_number = 3.3697;
     center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];     
 
@@ -178,7 +178,14 @@ function create_tracked_video(sessiondir)
             y = y.*(well_pixel_dims(w,1)/trex_conversion_number); 
 
             % determine x,y coords that fall outside well
+    %         center = [nanmedian(x), nanmedian(y)]; % somewhere near the center of the wel
             d = sqrt(nansum(([x y] - center(w,:)).^2, 2));
+    %             disp(['well ',num2str(w),', fly ',num2str(f),': ', num2str(round(100*(sum(d > outlier_th)/length(d)),1))])
+
+    %         figure(n)
+    %         plot(x,y,'k'); box off; hold on;
+    %         plot(x(d > outlier_th), y(d > outlier_th), 'r'); % values that exceed twice the ~radius
+    %         plot(center(w,1), center(w,2), 'go');
 
             % Add processed x,y coordinates to matrix, align with correct ts
             x_fly_outliers(idx, n) = x;
@@ -223,90 +230,114 @@ function create_tracked_video(sessiondir)
 
     % Flies to ignore for figures
     idx_bad = (sum(artifacts(:,2:3),2) > 1)';
-    
+
     % -------------------------------------------------------------------------
-    % Video
+    % Conversion
     % -------------------------------------------------------------------------
-    cd([datadir, sessiondir]);
+    % convert from pixels per frame to mm per second
+
+    % width of the well in pixels (well is 30 mm)
+    width_well = [327 345 322 324 345 318]; % magic numbers from video
     for w = 1:n_wells
-        if ~isfile(['tracking-video-c-well-', num2str(w),'.avi'])
-            vr = VideoReader(['video-c-well-', num2str(w),'.mp4']);
-            disp(['tracking video-c-well-', num2str(w),'.mp4'])
-            num_frames = floor(vr.Duration*vr.FrameRate);
 
-            if num_frames ~= length(ref_ts)
-                error(['error: num_frames: ', num2str(num_frames),', but ref_ts: ', num2str(length(ref_ts))]);
-            end
+        % pixels/frame * frames/second * mm/pixel
+        speed_fly(:, idx_well(w,1):idx_well(w,2)) = speed_fly(:, idx_well(w,1):idx_well(w,2)).*(frame_rate*(30./width_well(w)));
 
-            vw = VideoWriter(['tracking-video-c-well-', num2str(w),'.avi']);
-            vw.Quality = 100;
-            vw.FrameRate = frame_rate;
-            open(vw);
+        % pixels * mm/pixel
+        x_fly(:, idx_well(w,1):idx_well(w,2)) = x_fly(:, idx_well(w,1):idx_well(w,2)).*(30./width_well(w));
+        y_fly(:, idx_well(w,1):idx_well(w,2)) = y_fly(:, idx_well(w,1):idx_well(w,2)).*(30./width_well(w));
+    end
+    center = center.*(30./width_well)';
 
-            ds = 30; % downsample rate
-            frame_counter = 0;
-            pad = 10;
-            set(figure(1), 'Position',  [1000, 500, vr.width+pad, vr.height+pad])
-            for i = 1:ds:num_frames
-                f = read(vr, i);
 
-                image(f); hold on; box off;
-                plot(x_fly_outliers(i, idx_well(w,1):idx_well(w,2)), y_fly_outliers(i, idx_well(w,1):idx_well(w,2)),'ro');
+    % -------------------------------------------------------------------------
+    % Filter
+    % -------------------------------------------------------------------------
+    % All frequency values are in Hz.
+    Fs = frame_rate;  % Sampling Frequency
 
-                if ref_ts(i) < st(1,2)
-                    text(vr.width/2, 50, 'Baseline', 'Color', 'w')
-                elseif ref_ts(i) >= st(2,1) && ref_ts(i) <= st(2,2)
-                    text(vr.width/2, 50, ['Sevoflurane ', num2str(exp_dose),'%'], 'Color', 'w')
-                elseif ref_ts(i) > st(3,1)
-                    text(vr.width/2, 50, 'Recovery', 'Color', 'w')
-                end
+    % Attenuate everything under 0.1 Hz = 5 to 10 Seconds 
+    Fpass = 0.0167;              % Passband Frequency
+    Fstop = 0.1;              % Stopband Frequency
+    Dpass = 0.0057563991496;  % Passband Ripple
+    Dstop = 0.0001;           % Stopband Attenuation
+    dens  = 20;               % Density Factor
 
-                if ref_ts(i) >= mt(1) && ref_ts(i) <= mt(2)
-                    text(vr.width/2, 75, 'Motor On', 'Color', 'r')
-                end
+    % Calculate the order from the parameters using FIRPMORD.
+    [N, Fo, Ao, W] = firpmord([Fpass, Fstop]/(Fs/2), [1 0], [Dpass, Dstop]);
 
-                set(gca,'XTickLabel',[],'YTickLabel',[],'nextplot','replacechildren', ...
-                'Units','pixels','Position', [5 5 vr.width vr.height]);
+    % Calculate the coefficients using the FIRPM function.
+    filter_coeff  = firpm(N, Fo, Ao, W, {dens});
 
-                write_frame = getframe(gcf);
+    % -------------------------------------------------------------------------
+    % Figures
+    % -------------------------------------------------------------------------
+    % Translational speed or angular speed 1D time-plots per fly or grouped by
+    % well, or grouped by session
 
-                % Error checking
-                if size(write_frame.cdata, 1) > (vr.height+pad)
-                    write_frame.cdata = write_frame.cdata(1:(vr.height+pad), :, :);
-                end
+    % Per well
+    figure(1);
+    for w = 1:n_wells
+        % good flies for that well
+        idx = intersect(find(~idx_bad), idx_well(w,1):idx_well(w,2));
 
-                if size(write_frame.cdata, 2) > (vr.width+pad)
-                    write_frame.cdata = write_frame.cdata(:, 1:(vr.width+pad), :);
-                end
+        if isempty(idx)
+        else
+            plot_speed = nanmean(speed_fly(:,idx),2);
+            plot_speed(isnan(plot_speed)) = 0;
+            plot_speed = filtfilt(filter_coeff, 1, plot_speed);
+            plot_speed(plot_speed < 0) = 0;
 
-                if size(write_frame.cdata, 1) < (vr.height+pad)
-                    temp = zeros(vr.height+pad, vr.width+pad, 3);
-                    temp(1:size(write_frame.cdata,1), 1:size(write_frame.cdata,2), :) = write_frame.cdata;
-                    write_frame.cdata = uint8(temp);
-                end
-
-                if size(write_frame.cdata, 2) < (vr.width+pad)
-                    temp = zeros(vr.height+pad, vr.width+pad, 3);
-                    temp(1:size(write_frame.cdata,1), 1:size(write_frame.cdata,2), :) = write_frame.cdata;
-                    write_frame.cdata = uint8(temp);
-                end
-
-                try
-                    writeVideo(vw, write_frame);
-                catch
-                    disp(['improper frame ', num2str(i),' (size: ', num2str(size(write_frame.cdata)),')']);
-                    keyboard
-                end
-
-                frame_counter = frame_counter + ds;
-
-                if frame_counter > (5*60*frame_rate) % every 5 minutes worth of frames
-                    disp(['processed ', num2str(100*(i/num_frames)), '%'])
-                    frame_counter = 0;
-                end
-            end
-            close(gcf);
-            close(vw);
-            disp(' ');
+            subplot(3, 2, w)
+            box off; hold on;
+    %         plot(ref_ts, nanmean(speed_fly(:,idx),2), 'k');
+            line([st(2,1) st(2,1)], [0 max(plot_speed)],'Color','k','LineStyle','--');
+            line([st(3,1) st(3,1)], [0 max(plot_speed)],'Color','k','LineStyle','--');
+            plot(ref_ts, plot_speed, 'r');
+    %         line(mt, [10 10],'LineWidth',2, 'Color','g')
+            plot(mt(1),max(plot_speed)/2,'ks','MarkerFaceColor','k')
+            plot(mt(2),max(plot_speed)/2,'ks','MarkerFaceColor','k')
+            xlim([300 ref_ts(end)]);
+            % ylim([0 20]);
+            xlabel('Time (s)');
+            ylabel('Speed (mm/s)');
+            title(['Well ', num2str(w),' (n = ', num2str(length(idx)), ')']);
         end
     end
+
+    % All flies
+    figure(2)
+    % subplot(1,2,1);
+    plot_speed = nanmean(speed_fly(:,~idx_bad),2);
+    plot_speed(isnan(plot_speed)) = 0;
+    plot_speed = filtfilt(filter_coeff, 1, plot_speed);
+    plot_speed(plot_speed < 0) = 0;
+
+    box off; hold on;
+    % plot(ref_ts, nanmean(speed_fly(:,~idx_bad),2), 'k');
+    plot(ref_ts, plot_speed, 'r');
+    % line(mt, [10 10],'LineWidth',2, 'Color','g')
+    plot(mt(1),max(plot_speed)/2,'ks','MarkerFaceColor','k')
+    plot(mt(2),max(plot_speed)/2,'ks','MarkerFaceColor','k')
+    xlim([300 ref_ts(end)]);
+    % ylim([0 20]);
+    xlabel('Time (s)');
+    ylabel('Speed (mm/s)');
+    title('All flies');
+
+    % subplot(1,2,2);
+    % if sum(isnan(st(:))) > 0
+    %     bar([nanmean(nanmean(speed_fly((ref_ts > 300 & ref_ts < mt(1)), ~idx_bad), 2)), ... % Baseline
+    %     nanmean(nanmean(speed_fly(ref_ts > mt(2),~idx_bad), 2))]); % motor to end GA
+    %     box off;
+    %     ylabel('Mean speed (mm/s)');
+    %     set(gca,'XTick',1:2,'XTickLabel',{'Base','Motor'})
+    % else
+    %     bar([nanmean(nanmean(speed_fly((ref_ts > 300 & ref_ts < st(1,2)), ~idx_bad), 2)), ... % Baseline
+    %     nanmean(nanmean(speed_fly((ref_ts > st(2,1) & ref_ts < mt(1)),~idx_bad), 2)), ... % start GA to motor
+    %     nanmean(nanmean(speed_fly((ref_ts > mt(2) & ref_ts < st(2,2)),~idx_bad), 2)), ... % motor to end GA
+    %     nanmean(nanmean(speed_fly((ref_ts > st(3,1)),~idx_bad), 2))]); % Recovery
+    %     box off;
+    %     ylabel('Mean speed (mm/s)');
+    %     set(gca,'XTick',1:4,'XTickLabel',{'Base','GA','Motor','Recovery'})
+    % end
