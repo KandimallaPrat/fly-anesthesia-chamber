@@ -14,7 +14,7 @@ datadir = '/local/anesthesia/data/';
 
 well_speed = [];
 
-for q = 14
+for q = 15
     switch q
         case 1
             sessiondir = '2021-07-02-17-32-54'; % No GA
@@ -74,6 +74,10 @@ for q = 14
             sessiondir = '2021-07-11-15-02-19'; % Protocl 1 Sevoflurane 5.0%
             trex_conversion_number = 3.3697;
             center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];
+        case 15
+            sessiondir = '2021-07-13-11-06-53'; % Protocl 1 Sevoflurane 0.0%
+            trex_conversion_number = 3.3697;
+            center = [180 180; 180 180; 180 180; 180 180; 180 180; 180 180];            
     end
     
     disp(['session: ', sessiondir])
