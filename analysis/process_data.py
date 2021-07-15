@@ -13,7 +13,7 @@ os.system('ssh toor@10.0.0.5 "/home/toor/miniconda3/envs/tracking/bin/python ' +
           '/home/jdk20/git/fly-anesthesia-chamber/analysis/h264_to_mp4_to_pv.py --recordings ' + r + '"')
 
 # Create figures
-os.system('ssh toor@10.0.0.5 "/usr/local/MATLAB/R2021a/bin/matlab -nodisplay -nosplash -nodesktop -r "try, cd(\'/home/jdk20/git/fly-anesthesia-chamber/analysis\'), create_tracked_figure(\'' + r + '\'), catch, exit, end, exit""')
+# os.system('ssh toor@10.0.0.5 "/usr/local/MATLAB/R2021a/bin/matlab -nodisplay -nosplash -nodesktop -r "try, cd(\'/home/jdk20/git/fly-anesthesia-chamber/analysis\'), create_tracked_figure(\'' + r + '\'), catch, exit, end, exit""')
 
 # Create tracked video
-os.system('ssh toor@10.0.0.5 "/usr/local/MATLAB/R2021a/bin/matlab -nodisplay -nosplash -nodesktop -r "try, cd(\'/home/jdk20/git/fly-anesthesia-chamber/analysis\'), create_tracked_video(\'' + r + '\'), catch, exit, end, exit""')
+# os.system('ssh toor@10.0.0.5 "/usr/local/MATLAB/R2021a/bin/matlab -nodisplay -nosplash -nodesktop -r "try, cd(\'/home/jdk20/git/fly-anesthesia-chamber/analysis\'), create_tracked_video(\'' + r + '\'), catch, exit, end, exit""')

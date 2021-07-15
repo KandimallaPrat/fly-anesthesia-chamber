@@ -178,14 +178,7 @@ function create_tracked_figure(sessiondir)
             y = y.*(well_pixel_dims(w,1)/trex_conversion_number); 
 
             % determine x,y coords that fall outside well
-    %         center = [nanmedian(x), nanmedian(y)]; % somewhere near the center of the wel
             d = sqrt(nansum(([x y] - center(w,:)).^2, 2));
-    %             disp(['well ',num2str(w),', fly ',num2str(f),': ', num2str(round(100*(sum(d > outlier_th)/length(d)),1))])
-
-    %         figure(n)
-    %         plot(x,y,'k'); box off; hold on;
-    %         plot(x(d > outlier_th), y(d > outlier_th), 'r'); % values that exceed twice the ~radius
-    %         plot(center(w,1), center(w,2), 'go');
 
             % Add processed x,y coordinates to matrix, align with correct ts
             x_fly_outliers(idx, n) = x;
@@ -323,7 +316,19 @@ function create_tracked_figure(sessiondir)
     % ylim([0 20]);
     xlabel('Time (s)');
     ylabel('Speed (mm/s)');
-    title('All flies');
+    title(['GA: ', num2str(exp_dose), '% (n = ', num2str(sum(~idx_bad)),')']);
+    
+    cd([datadir, sessiondir])
+    w = 12;
+    h = 8;
+    set(figure(1),'PaperPosition',[0 0 w*1.19 h*1.19]);
+    print(figure(1),'-dpng','results_by_well.png');
+    
+    w = 12;
+    h = 8;
+    set(figure(2),'PaperPosition',[0 0 w*1.19 h*1.19]);
+    print(figure(2),'-dpng','results_all_flies.png');
+    close all;
 
     % subplot(1,2,2);
     % if sum(isnan(st(:))) > 0
