@@ -81,7 +81,11 @@ function create_tracked_figure(sessiondir)
     if isempty(i0)
         mt = [NaN NaN];
     else
-        mt = [t(i0(1)) t(i0(end))]; % TODO: this assumes only one motor activation per session
+        motor(motor ~= 1) = 0;
+        
+        start_motor = t(strfind([0, motor' == 1], [0 1]));
+        end_motor = t(strfind([motor' == 1, 0], [1 0]));
+        mt = start_motor;
     end
 
     disp(['session duration: ', num2str(t(end)), ' (n = ', num2str(size(t,1)),' samples)']);
@@ -280,18 +284,21 @@ function create_tracked_figure(sessiondir)
             plot_speed(isnan(plot_speed)) = 0;
             plot_speed = filtfilt(filter_coeff, 1, plot_speed);
             plot_speed(plot_speed < 0) = 0;
-
+            plot_speed = plot_speed - 0.3; % MAGIC JITTER NUMBER  
             subplot(3, 2, w)
             box off; hold on;
-    %         plot(ref_ts, nanmean(speed_fly(:,idx),2), 'k');
             line([st(2,1) st(2,1)], [0 max(plot_speed)],'Color','k','LineStyle','--');
             line([st(3,1) st(3,1)], [0 max(plot_speed)],'Color','k','LineStyle','--');
-            plot(ref_ts, plot_speed, 'r');
+    %         plot(ref_ts, nanmean(speed_fly(:,idx),2), 'k');
+            plot(ref_ts, plot_speed, 'Color', [103,169,207]./255);
+            for m = 1:length(mt) 
+                plot(mt(m),max(plot_speed)/2,'k.','MarkerFaceColor','k')
+            end
     %         line(mt, [10 10],'LineWidth',2, 'Color','g')
-            plot(mt(1),max(plot_speed)/2,'ks','MarkerFaceColor','k')
-            plot(mt(2),max(plot_speed)/2,'ks','MarkerFaceColor','k')
+%             plot(mt(1),max(plot_speed)/2,'ks','MarkerFaceColor','k')
+%             plot(mt(2),max(plot_speed)/2,'ks','MarkerFaceColor','k')
             xlim([300 ref_ts(end)]);
-            % ylim([0 20]);
+            ylim([0 max(plot_speed)]);
             xlabel('Time (s)');
             ylabel('Speed (mm/s)');
             title(['Well ', num2str(w),' (n = ', num2str(length(idx)), ')']);
@@ -305,44 +312,38 @@ function create_tracked_figure(sessiondir)
     plot_speed(isnan(plot_speed)) = 0;
     plot_speed = filtfilt(filter_coeff, 1, plot_speed);
     plot_speed(plot_speed < 0) = 0;
-
+    plot_speed = plot_speed - 0.3; % MAGIC JITTER NUMBER  
     box off; hold on;
+    h1 = line([st(2,1) st(2,1)],[0 max(plot_speed)],'Color','k','LineStyle','--');
+    line([st(3,1) st(3,1)],[0 max(plot_speed)],'Color','k','LineStyle','--')
     % plot(ref_ts, nanmean(speed_fly(:,~idx_bad),2), 'k');
-    plot(ref_ts, plot_speed, 'r');
+    plot(ref_ts, plot_speed, 'Color', [103,169,207]./255, 'LineWidth', 1.5);
     % line(mt, [10 10],'LineWidth',2, 'Color','g')
-    plot(mt(1),max(plot_speed)/2,'ks','MarkerFaceColor','k')
-    plot(mt(2),max(plot_speed)/2,'ks','MarkerFaceColor','k')
+    for m = 1:length(mt) 
+        if m == 1
+            h2 = plot(mt(m),max(plot_speed)/2,'k.','MarkerFaceColor','k');
+        else
+            plot(mt(m),max(plot_speed)/2,'k.','MarkerFaceColor','k')
+        end
+    end
+    h3 = legend([h1, h2], 'Sevoflurane on/off','Stimulus','Location','NorthEast');
+    set(h3, 'box', 'off');
     xlim([300 ref_ts(end)]);
-    % ylim([0 20]);
+    ylim([0 max(plot_speed)]);
     xlabel('Time (s)');
-    ylabel('Speed (mm/s)');
-    title(['GA: ', num2str(exp_dose), '% (n = ', num2str(sum(~idx_bad)),')']);
+    ylabel('Mean speed (mm/s)');
+    title(['Sevoflurane ', num2str(exp_dose), '% (n = ', num2str(sum(~idx_bad)),')']);
     
     cd([datadir, sessiondir])
+    save('metrics.mat','idx_bad','idx_well','plot_speed','speed_fly','st','mt','ref_ts');
+        
     w = 12;
     h = 8;
     set(figure(1),'PaperPosition',[0 0 w*1.19 h*1.19]);
     print(figure(1),'-dpng','results_by_well.png');
     
     w = 12;
-    h = 8;
+    h = 4;
     set(figure(2),'PaperPosition',[0 0 w*1.19 h*1.19]);
     print(figure(2),'-dpng','results_all_flies.png');
     close all;
-
-    % subplot(1,2,2);
-    % if sum(isnan(st(:))) > 0
-    %     bar([nanmean(nanmean(speed_fly((ref_ts > 300 & ref_ts < mt(1)), ~idx_bad), 2)), ... % Baseline
-    %     nanmean(nanmean(speed_fly(ref_ts > mt(2),~idx_bad), 2))]); % motor to end GA
-    %     box off;
-    %     ylabel('Mean speed (mm/s)');
-    %     set(gca,'XTick',1:2,'XTickLabel',{'Base','Motor'})
-    % else
-    %     bar([nanmean(nanmean(speed_fly((ref_ts > 300 & ref_ts < st(1,2)), ~idx_bad), 2)), ... % Baseline
-    %     nanmean(nanmean(speed_fly((ref_ts > st(2,1) & ref_ts < mt(1)),~idx_bad), 2)), ... % start GA to motor
-    %     nanmean(nanmean(speed_fly((ref_ts > mt(2) & ref_ts < st(2,2)),~idx_bad), 2)), ... % motor to end GA
-    %     nanmean(nanmean(speed_fly((ref_ts > st(3,1)),~idx_bad), 2))]); % Recovery
-    %     box off;
-    %     ylabel('Mean speed (mm/s)');
-    %     set(gca,'XTick',1:4,'XTickLabel',{'Base','GA','Motor','Recovery'})
-    % end

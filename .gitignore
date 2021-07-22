@@ -2,6 +2,7 @@
 *.m~
 AS3DataExport.csv
 *.raw
+*.png
 
 .idea/
 data/

@@ -16,15 +16,7 @@ args = parser.parse_args()
 recordings = [args.recordings]
 
 # TODO: Create basic plots
-# recordings = ['2021-07-21-11-30-50']
-'''
-recordings = ['2021-07-07-12-39-58',  # 0.0% sevoflurane
-              '2021-07-07-14-54-04',  # 7.0% sevoflurane
-              '2021-07-08-10-56-08',  # 2.0% sevoflurane
-              '2021-07-08-12-23-52',  # 5.0% sevoflurane
-              '2021-07-08-13-58-04',  # 6.0% sevoflurane
-              '2021-07-08-16-04-45']  # 8.0% sevoflurane
-'''
+# recordings = ['2021-07-21-18-01-27', '2021-07-21-11-30-50']
 
 for r in recordings:
     datadir = '/local/anesthesia/data/' + r + '/'
