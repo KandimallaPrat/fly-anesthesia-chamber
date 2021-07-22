@@ -16,6 +16,7 @@ args = parser.parse_args()
 recordings = [args.recordings]
 
 # TODO: Create basic plots
+# recordings = ['2021-07-21-11-30-50']
 '''
 recordings = ['2021-07-07-12-39-58',  # 0.0% sevoflurane
               '2021-07-07-14-54-04',  # 7.0% sevoflurane
