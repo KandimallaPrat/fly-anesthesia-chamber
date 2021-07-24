@@ -306,6 +306,8 @@ function create_tracked_figure(sessiondir)
     end
 
     % All flies
+    ymax = 7;
+    
     figure(2)
     % subplot(1,2,1);
     plot_speed = nanmean(speed_fly(:,~idx_bad),2);
@@ -314,22 +316,24 @@ function create_tracked_figure(sessiondir)
     plot_speed(plot_speed < 0) = 0;
     plot_speed = plot_speed - 0.3; % MAGIC JITTER NUMBER  
     box off; hold on;
-    h1 = line([st(2,1) st(2,1)],[0 max(plot_speed)],'Color','k','LineStyle','--');
-    line([st(3,1) st(3,1)],[0 max(plot_speed)],'Color','k','LineStyle','--')
+    for m = 1:length(mt) 
+        if m == 1
+%             h2 = plot(mt(m),max(plot_speed)/2,'k.','MarkerFaceColor','k');
+        else
+%             plot(mt(m),max(plot_speed)/2,'k.','MarkerFaceColor','k')
+        end
+        
+        h2 = line([mt(m) mt(m)],[0 ymax],'Color',[0.8 0.8 0.8]);
+    end
+    h1 = line([st(2,1) st(2,1)],[0 ymax],'Color','k','LineStyle','--','LineWidth',1.5);
+    line([st(3,1) st(3,1)],[0 ymax],'Color','k','LineStyle','--','LineWidth',1.5)
     % plot(ref_ts, nanmean(speed_fly(:,~idx_bad),2), 'k');
     plot(ref_ts, plot_speed, 'Color', [103,169,207]./255, 'LineWidth', 1.5);
     % line(mt, [10 10],'LineWidth',2, 'Color','g')
-    for m = 1:length(mt) 
-        if m == 1
-            h2 = plot(mt(m),max(plot_speed)/2,'k.','MarkerFaceColor','k');
-        else
-            plot(mt(m),max(plot_speed)/2,'k.','MarkerFaceColor','k')
-        end
-    end
-    h3 = legend([h1, h2], 'Sevoflurane on/off','Stimulus','Location','NorthEast');
+    h3 = legend([h1,h2], 'Sevoflurane on/off','Motor','Location','NorthEast');
     set(h3, 'box', 'off');
     xlim([300 ref_ts(end)]);
-    ylim([0 max(plot_speed)]);
+    ylim([0 ymax]);
     xlabel('Time (s)');
     ylabel('Mean speed (mm/s)');
     title(['Sevoflurane ', num2str(exp_dose), '% (n = ', num2str(sum(~idx_bad)),')']);
