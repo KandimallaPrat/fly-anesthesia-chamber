@@ -16,7 +16,7 @@ args = parser.parse_args()
 recordings = [args.recordings]
 
 # TODO: Create basic plots
-# recordings = ['2021-07-21-18-01-27', '2021-07-21-11-30-50']
+# recordings = ['2021-07-30-08-53-57']
 
 for r in recordings:
     datadir = '/local/anesthesia/data/' + r + '/'
@@ -46,7 +46,7 @@ for r in recordings:
                 print('compressing .h264 to .mp4...')
                 s = time()
                 os.system('/usr/bin/ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
-                          ' -i ' + datadir + 'video.h264 -vf "transpose=2,transpose=2",lenscorrection=k1=-0.15:k2=0 -c:v h264_nvenc ' + datadir + 'video-c.mp4')
+                          ' -i ' + datadir + 'video.h264 -vf "transpose=2,transpose=2",lenscorrection=k1=-0.15:k2=0 ' + datadir + 'video-c.mp4')
                 print('converted video using ffmpeg in ' + '{:.1f}'.format(time()-s) + ' seconds')
         else:
             print('video.h264 not found, skipping compression')
@@ -123,10 +123,11 @@ for r in recordings:
                         wi = '350'
                         he = '350'
 
+                    # -c:v h264_nvenc
                     s = time()
                     os.system('/usr/bin/ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
                               ' -i ' + datadir + 'video.h264 -vf "transpose=2,transpose=2",lenscorrection=k1=-0.15:k2=0,"crop=' + wi + ':' + he + ':'
-                              + x + ':' + y + '" -c:v h264_nvenc ' + datadir +
+                              + x + ':' + y + '" ' + datadir +
                               'video-c-well-' + str(w) + '.mp4')
                     print('converted video using ffmpeg in ' + '{:.1f}'.format(time()-s) + ' seconds')
         else:
