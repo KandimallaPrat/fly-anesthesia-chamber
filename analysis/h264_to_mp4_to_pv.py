@@ -45,7 +45,7 @@ for r in recordings:
             else:
                 print('compressing .h264 to .mp4...')
                 s = time()
-                os.system('/usr/bin/ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
+                os.system('/usr/bin/ffmpeg -framerate ' + str(frame_rate) +
                           ' -i ' + datadir + 'video.h264 -vf "transpose=2,transpose=2",lenscorrection=k1=-0.15:k2=0 ' + datadir + 'video-c.mp4')
                 print('converted video using ffmpeg in ' + '{:.1f}'.format(time()-s) + ' seconds')
         else:
@@ -125,7 +125,7 @@ for r in recordings:
 
                     # -c:v h264_nvenc
                     s = time()
-                    os.system('/usr/bin/ffmpeg -hide_banner -loglevel error -framerate ' + str(frame_rate) +
+                    os.system('/usr/bin/ffmpeg -framerate ' + str(frame_rate) +
                               ' -i ' + datadir + 'video.h264 -vf "transpose=2,transpose=2",lenscorrection=k1=-0.15:k2=0,"crop=' + wi + ':' + he + ':'
                               + x + ':' + y + '" ' + datadir +
                               'video-c-well-' + str(w) + '.mp4')
