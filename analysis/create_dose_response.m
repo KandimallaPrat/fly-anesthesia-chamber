@@ -186,7 +186,7 @@ for k = 0:4
                 
         exp_a = [];
         exp_b = [];
-        for n = 1:1000
+        for n = 1:100
             % sample with replacement
             [r, r_idx] = datasample(temp_speed, length(temp_speed));
             if m == 1
