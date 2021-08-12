@@ -61,6 +61,14 @@ for k = 0:4
     speed_well_ga = [];
     speed_well_recovery = [];
     
+    time_session_baseline = [];
+    time_session_ga = [];
+    time_session_recovery = [];
+    
+    time_well_baseline = [];
+    time_well_ga = [];
+    time_well_recovery = [];
+    
     for i = 1:length(sessiondir)
         if ~strcmp(sessiondir{i}, 'NA')
             cd([datadir, sessiondir{i}]);
@@ -93,6 +101,11 @@ for k = 0:4
             speed_ga = [speed_ga; nanmean(nanmean(speed_fly(ref_ts > i0 & ref_ts < i1, ~idx_bad), 2))];
             speed_recovery = [speed_recovery; nanmean(nanmean(speed_fly(ref_ts > i4 & ref_ts < i5, ~idx_bad), 2))];
             
+            temp_time = datetime(sessiondir{i}, 'InputFormat', 'yyyy-MM-dd-HH-mm-ss');
+            temp_time_same_day = datetime([num2str(temp_time.Hour),'-',num2str(temp_time.Minute),'-',num2str(temp_time.Second)], 'InputFormat', 'HH-mm-ss');
+                
+            time_session_baseline = [time_session_baseline; temp_time];
+    
             % Speed by well
             for j = 1:size(idx_well,1)
                 dose_well = [dose_well; session_dose(i)];
@@ -100,11 +113,15 @@ for k = 0:4
                 speed_well_baseline = [speed_well_baseline; nanmean(nanmean(speed_fly(ref_ts > i2 & ref_ts < i3, idx_well(j,1):idx_well(j,2)), 2))];
                 speed_well_ga = [speed_well_ga; nanmean(nanmean(speed_fly(ref_ts > i0 & ref_ts < i1, idx_well(j,1):idx_well(j,2)), 2))];
                 speed_well_recovery = [speed_well_recovery; nanmean(nanmean(speed_fly(ref_ts > i4 & ref_ts < i5, idx_well(j,1):idx_well(j,2)), 2))];
+                
+                time_well_baseline = [time_well_baseline; temp_time_same_day];
+                time_well_ga = [time_well_ga; temp_time_same_day + minutes(35)];
+                time_well_recovery = [time_well_recovery; temp_time_same_day + minutes(55)];
             end
             
         end
     end
-     
+    
     mj = 0.3; % MAGIC JITTER
     
     speed_well_baseline = speed_well_baseline - mj;
@@ -140,8 +157,10 @@ for k = 0:4
         hold on; box off;
         if length(temp_speed) > 1
             f = fit(dose,temp_speed,'exp1');
+            figure(m)
             plot(0:0.1:9, f.a .* exp(f.b .* (0:0.1:9)),'k', 'Linewidth', 1.5);
         end
+        figure(m)
         plot(dose, temp_speed, 'ko', 'MarkerFaceColor', c);
         xlim([-1 9]);
         ylim([0 ymax]);
@@ -149,12 +168,15 @@ for k = 0:4
         ylabel('Mean Speed (mm/s)');
         xlabel('Sevoflurane %');
         title(S);
-
+        
+        figure(m)
         subplot(2,3,6);
         hold on; box off;
         if length(temp_speed) > 1
+            figure(m)
             plot(0:0.1:9, f.a .* exp(f.b .* (0:0.1:9)),'Color',c, 'Linewidth', 1.5);
         end
+        figure(m)
         plot(dose, temp_speed, 'ko', 'MarkerFaceColor', c);
         xlim([-1 9]);
         ylim([0 ymax]);
@@ -186,43 +208,48 @@ for k = 0:4
                 
         exp_a = [];
         exp_b = [];
+        ci_alpha = 2.5;
         for n = 1:100
             % sample with replacement
             [r, r_idx] = datasample(temp_speed, length(temp_speed));
             if m == 1
-                f = fit(dose_well(r_idx), r, 'poly1');
+                [f,gof] = fit(dose_well(r_idx), r, 'poly1');
                 exp_a = [exp_a; f.p1];
                 exp_b = [exp_b; f.p2];
             else
-                f = fit(dose_well(r_idx), r, 'exp1');
+                [f,gof] = fit(dose_well(r_idx), r, 'exp1');
                 exp_a = [exp_a; f.a];
                 exp_b = [exp_b; f.b];
+%                 plot(dose_well(r_idx), r, 'ko', 'MarkerFaceColor', c);
             end
         end
-       
         
         hold on; box off;
         if m == 1
-%             plot(0:0.1:9, prctile(exp_a,2.5).*(0:0.1:9) + prctile(exp_b,2.5),'k--', 'Linewidth', 1.5);
-%             plot(0:0.1:9, prctile(exp_a,97.5).*(0:0.1:9) + prctile(exp_b,97.5),'k--', 'Linewidth', 1.5);
-            Z = fill([0:0.1:9 fliplr(0:0.1:9)],[prctile(exp_a,0.5).*(0:0.1:9) + prctile(exp_b,0.5) fliplr(prctile(exp_a,99.5).*(0:0.1:9) + prctile(exp_b,99.5))],'b');
+            Z = fill([0:0.1:9 fliplr(0:0.1:9)],[prctile(exp_a,ci_alpha).*(0:0.1:9) + prctile(exp_b,ci_alpha) fliplr(prctile(exp_a,100-ci_alpha).*(0:0.1:9) + prctile(exp_b,100-ci_alpha))],'b');
             set(Z,'FaceColor',[0.5 0.5 0.5],'EdgeColor',[0.5 0.5 0.5],'FaceAlpha',0.5,'EdgeAlpha',0.5);
             plot(0:0.1:9, mean(exp_a).*(0:0.1:9) + mean(exp_b),'k', 'Linewidth', 1.5);
+%             plot(0:0.1:9, prctile(exp_a,ci_alpha).*(0:0.1:9) + prctile(exp_b,ci_alpha),'k--', 'Linewidth', 1.5);
+%             plot(0:0.1:9, prctile(exp_a,100-ci_alpha).*(0:0.1:9) + prctile(exp_b,100-ci_alpha),'k--', 'Linewidth', 1.5);
         else
-%             plot(0:0.1:9, prctile(exp_a,2.5).*exp(prctile(exp_b,2.5).*(0:0.1:9)),'k--', 'Linewidth', 1.5);
-%             plot(0:0.1:9, prctile(exp_a,97.5).*exp(prctile(exp_b,97.5).*(0:0.1:9)),'k--', 'Linewidth', 1.5);
-            Z = fill([0:0.1:9 fliplr(0:0.1:9)],[prctile(exp_a,0.5).*exp(prctile(exp_b,0.5).*(0:0.1:9)) fliplr(prctile(exp_a,99.5).*exp(prctile(exp_b,99.5).*(0:0.1:9)))],'b');
-            set(Z,'FaceColor',[0.5 0.5 0.5],'EdgeColor',[0.5 0.5 0.5],'FaceAlpha',0.5,'EdgeAlpha',0.5);
+            if (k == 0 | k == 1) & m == 3
+            else
+                Z = fill([0:0.1:9 fliplr(0:0.1:9)],[prctile(exp_a,ci_alpha).*exp(prctile(exp_b,ci_alpha).*(0:0.1:9)) fliplr(prctile(exp_a,100-ci_alpha).*exp(prctile(exp_b,100-ci_alpha).*(0:0.1:9)))],'b');
+                set(Z,'FaceColor',[0.5 0.5 0.5],'EdgeColor',[0.5 0.5 0.5],'FaceAlpha',0.5,'EdgeAlpha',0.5);
+            end
             plot(0:0.1:9, mean(exp_a).*exp(mean(exp_b).*(0:0.1:9)),'k', 'Linewidth', 1.5);
+%             plot(0:0.1:9, prctile(exp_a,ci_alpha).*exp(prctile(exp_b,ci_alpha).*(0:0.1:9)),'k--', 'Linewidth', 1.5);
+%             plot(0:0.1:9, prctile(exp_a,100-ci_alpha).*exp(prctile(exp_b,100-ci_alpha).*(0:0.1:9)),'k--', 'Linewidth', 1.5);
+
         end
-        plot(dose_well, temp_speed, 'ko', 'MarkerFaceColor', c);
+        plot(dose_well+randn(length(dose_well),1)./20, temp_speed, 'ko', 'MarkerFaceColor', c, 'MarkerSize',5);
        
         if m == 1
-            coeff_baseline = [coeff_baseline; [mean(exp_a) prctile(exp_a, 0.5) prctile(exp_a, 99.5) mean(exp_b) prctile(exp_b, 0.5) prctile(exp_b, 99.5)]];
+            coeff_baseline = [coeff_baseline; [mean(exp_a) prctile(exp_a, ci_alpha) prctile(exp_a, 100-ci_alpha) mean(exp_b) prctile(exp_b, ci_alpha) prctile(exp_b, 100-ci_alpha)]];
         elseif m == 2
-            coeff_ga = [coeff_ga; [mean(exp_a) prctile(exp_a, 0.5) prctile(exp_a, 99.5) mean(exp_b) prctile(exp_b, 0.5) prctile(exp_b, 99.5)]];
+            coeff_ga = [coeff_ga; [mean(exp_a) prctile(exp_a, ci_alpha) prctile(exp_a, 100-ci_alpha) mean(exp_b) prctile(exp_b, ci_alpha) prctile(exp_b, 100-ci_alpha)]];
         elseif m == 3
-            coeff_recovery = [coeff_recovery; [mean(exp_a) prctile(exp_a, 0.5) prctile(exp_a, 99.5) mean(exp_b) prctile(exp_b, 0.5) prctile(exp_b, 99.5)]];
+            coeff_recovery = [coeff_recovery; [mean(exp_a) prctile(exp_a, ci_alpha) prctile(exp_a, 100-ci_alpha) mean(exp_b) prctile(exp_b, ci_alpha) prctile(exp_b, 100-ci_alpha)]];
         end
         
 %         i0 = unique(dose_well);
@@ -245,7 +272,7 @@ for k = 0:4
 %                 plot(0:0.1:9, f.a .* exp(f.b .* (0:0.1:9)),'k', 'Linewidth', 1.5);
 %             end
 %         end
-        
+        figure(10+k)
         xlim([-0.1 8.1]);
         ylim([0 ymax]);
         set(gca,'XTick',[0 0.5 1 1.5 2 3 4 5 6 7 8],'YTick',0:1:10);
@@ -253,6 +280,38 @@ for k = 0:4
         xlabel('Sevoflurane %');
         title([S, S2]);
     end
+    
+    % Time figure
+    figure(30+k);
+    hold on; box off;
+    plot(time_well_baseline, speed_well_baseline,'ko', 'MarkerFaceColor', c)
+    ylim([0 7]);
+    ylabel('Mean Speed (mm/s)');
+    xlabel('Time (Hour/Minute)');
+    title('Baseline');
+    
+    figure(70+k);
+    hold on; box off;
+    plot(time_well_ga, speed_well_ga,'ko', 'MarkerFaceColor', c)
+    ylim([0 7]);
+    ylabel('Mean Speed (mm/s)');
+    xlabel('Time (Hour/Minute)');
+    title('Sevoflurane');
+    
+    figure(80+k);
+    hold on; box off;
+    plot(time_well_recovery, speed_well_recovery,'ko', 'MarkerFaceColor', c)
+    ylim([0 7]);
+    ylabel('Mean Speed (mm/s)');
+    xlabel('Time (Hour/Minute)');
+    title('Recovery');
+   
+    figure(41);
+    hold on; box off;
+    plot(time_session_baseline, speed_baseline,'ko', 'MarkerFaceColor', c)
+    ylim([0 7]);
+    ylabel('Mean Speed (mm/s)');
+    xlabel('Date (Hour/Minute)');
 end
 
 for k = [1 2 4 5]
@@ -275,41 +334,73 @@ for k = [1 2 4 5]
     end
     
     figure(20);
-    subplot(1,3,1);
+%     subplot(1,3,1);
+%     hold on; box off;
+%     Z = fill([0:0.1:9 fliplr(0:0.1:9)],[coeff_baseline(k,2).*(0:0.1:9) + coeff_baseline(k,5) fliplr(coeff_baseline(k,3).*(0:0.1:9) + coeff_baseline(k,6))],'b');
+%     set(Z,'FaceColor',c,'EdgeColor',c,'FaceAlpha',0.5,'EdgeAlpha',0.5);
+%     plot(0:0.1:9, coeff_baseline(k,1).*(0:0.1:9) + coeff_baseline(k,4),'k', 'Linewidth', 1);
+%     xlim([-0.1 8.1]);
+%     ylim([0 4]);
+%     set(gca,'XTick',[0 0.5 1 1.5 2 3 4 5 6 7 8],'YTick',0:1:10);
+%     ylabel('Mean Speed (mm/s)');
+%     xlabel('Sevoflurane %');
+%     title('Baseline');
+   
+%     subplot(1,3,2);
     hold on; box off;
-    Z = fill([0:0.1:9 fliplr(0:0.1:9)],[coeff_baseline(k,2).*(0:0.1:9) + coeff_baseline(k,5) fliplr(coeff_baseline(k,3).*(0:0.1:9) + coeff_baseline(k,6))],'b');
-    set(Z,'FaceColor',c,'EdgeColor',c,'FaceAlpha',0.5,'EdgeAlpha',0.5);
-    plot(0:0.1:9, coeff_baseline(k,1).*(0:0.1:9) + coeff_baseline(k,4),'k', 'Linewidth', 1);
+%     Z = fill([0:0.1:9 fliplr(0:0.1:9)],[coeff_ga(k,2).*exp(coeff_ga(k,5).*(0:0.1:9)) fliplr(coeff_ga(k,3).*exp(coeff_ga(k,6).*(0:0.1:9)))],'b');
+%     set(Z,'FaceColor',c,'EdgeColor',c,'FaceAlpha',0.5,'EdgeAlpha',0.5);
+    plot(0:0.1:9, coeff_ga(k,1).*exp(coeff_ga(k,4).*(0:0.1:9)),'Color',c, 'Linewidth', 1.5);
+    plot(0:0.1:9, coeff_ga(k,2).*exp(coeff_ga(k,5).*(0:0.1:9)),'Color',c, 'Linewidth', 1, 'LineStyle', '--');
+    plot(0:0.1:9, coeff_ga(k,3).*exp(coeff_ga(k,6).*(0:0.1:9)),'Color',c, 'Linewidth', 1, 'LineStyle', '--');
+    xlim([-0.1 8.1]);
+    ylim([0 4]);
+    set(gca,'XTick',[0 0.5 1 1.5 2 3 4 5 6 7 8],'YTick',0:1:10);
+    ylabel('Mean Speed (mm/s)');
+    xlabel('Sevoflurane %');
+    title('Sevoflurane');
+    
+    figure(21)
+    hold on; box off;
+    plot(0:0.1:9, coeff_ga(k,1).*exp(coeff_ga(k,4).*(0:0.1:9)),'Color',c, 'Linewidth', 1.5);
+    xlim([-0.1 8.1]);
+    ylim([0 4]);
+    set(gca,'XTick',[0 0.5 1 1.5 2 3 4 5 6 7 8],'YTick',0:1:10);
+    ylabel('Mean Speed (mm/s)');
+    xlabel('Sevoflurane %');
+    title('Sevoflurane');
+    
+    figure(22);
+    hold on; box off;
+    plot(0:0.1:9, coeff_baseline(k,1).*(0:0.1:9) + coeff_baseline(k,4),'Color',c, 'Linewidth', 1.5);
     xlim([-0.1 8.1]);
     ylim([0 4]);
     set(gca,'XTick',[0 0.5 1 1.5 2 3 4 5 6 7 8],'YTick',0:1:10);
     ylabel('Mean Speed (mm/s)');
     xlabel('Sevoflurane %');
     title('Baseline');
-   
-    subplot(1,3,2);
-    hold on; box off;
-    Z = fill([0:0.1:9 fliplr(0:0.1:9)],[coeff_ga(k,2).*exp(coeff_ga(k,5).*(0:0.1:9)) fliplr(coeff_ga(k,3).*exp(coeff_ga(k,6).*(0:0.1:9)))],'b');
-    set(Z,'FaceColor',c,'EdgeColor',c,'FaceAlpha',0.5,'EdgeAlpha',0.5);
-    plot(0:0.1:9, coeff_ga(k,1).*exp(coeff_ga(k,4).*(0:0.1:9)),'k', 'Linewidth', 1.5);
-    xlim([-0.1 8.1]);
-    ylim([0 4]);
-    set(gca,'XTick',[0 0.5 1 1.5 2 3 4 5 6 7 8],'YTick',0:1:10);
-    ylabel('Mean Speed (mm/s)');
-    xlabel('Sevoflurane %');
-    title('GA');
     
-    subplot(1,3,3);
+    figure(23);
     hold on; box off;
-    Z = fill([0:0.1:9 fliplr(0:0.1:9)],[coeff_recovery(k,2).*exp(coeff_recovery(k,5).*(0:0.1:9)) fliplr(coeff_recovery(k,3).*exp(coeff_recovery(k,6).*(0:0.1:9)))],'b');
-    set(Z,'FaceColor',c,'EdgeColor',c,'FaceAlpha',0.5,'EdgeAlpha',0.5);
-    plot(0:0.1:9, coeff_recovery(k,1).*exp(coeff_recovery(k,4).*(0:0.1:9)),'k', 'Linewidth', 1.5);
+    plot(0:0.1:9, coeff_recovery(k,1).*exp(coeff_recovery(k,4).*(0:0.1:9)),'Color',c, 'Linewidth', 1.5);
     xlim([-0.1 8.1]);
     ylim([0 4]);
     set(gca,'XTick',[0 0.5 1 1.5 2 3 4 5 6 7 8],'YTick',0:1:10);
     ylabel('Mean Speed (mm/s)');
     xlabel('Sevoflurane %');
     title('Recovery');
+    
+%     subplot(1,3,3);
+%     hold on; box off;
+%     Z = fill([0:0.1:9 fliplr(0:0.1:9)],[coeff_recovery(k,2).*exp(coeff_recovery(k,5).*(0:0.1:9)) fliplr(coeff_recovery(k,3).*exp(coeff_recovery(k,6).*(0:0.1:9)))],'b');
+%     set(Z,'FaceColor',c,'EdgeColor',c,'FaceAlpha',0.5,'EdgeAlpha',0.5);
+%     plot(0:0.1:9, coeff_recovery(k,1).*exp(coeff_recovery(k,4).*(0:0.1:9)),'k', 'Linewidth', 1.5);
+%     xlim([-0.1 8.1]);
+%     ylim([0 4]);
+%     set(gca,'XTick',[0 0.5 1 1.5 2 3 4 5 6 7 8],'YTick',0:1:10);
+%     ylabel('Mean Speed (mm/s)');
+%     xlabel('Sevoflurane %');
+%     title('Recovery');
 end
         
 % figure(20);
@@ -362,8 +453,66 @@ print(figure(13),'-dpng','PR_bootstrap.png');
 set(figure(14),'PaperPosition',[0 0 w*1.19 h*1.19]);
 print(figure(14),'-dpng','TB_bootstrap.png');
 
-set(figure(20),'PaperPosition',[0 0 w*1.19 4*1.19]);
+set(figure(20),'PaperPosition',[0 0 6*1.19 4*1.19]);
 print(figure(20),'-dpng','all_bootstrap.png');
+
+set(figure(21),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(21),'-dpng','all_bootstrap_ga_no_ci.png');
+
+set(figure(22),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(22),'-dpng','all_bootstrap_baseline_no_ci.png');
+
+set(figure(23),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(23),'-dpng','all_bootstrap_recovery_no_ci.png');
+
+set(figure(30),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(30),'-dpng','time_baseline_6x.png');
+
+set(figure(31),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(31),'-dpng','time_baseline_HCS.png');
+
+set(figure(32),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(32),'-dpng','time_baseline_DL.png');
+
+set(figure(33),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(33),'-dpng','time_baseline_PR.png');
+
+set(figure(34),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(34),'-dpng','time_baseline_TB.png');
+
+set(figure(70),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(70),'-dpng','time_ga_6x.png');
+
+set(figure(71),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(71),'-dpng','time_ga_HCS.png');
+
+set(figure(72),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(72),'-dpng','time_ga_DL.png');
+
+set(figure(73),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(73),'-dpng','time_ga_PR.png');
+
+set(figure(74),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(74),'-dpng','time_ga_TB.png');
+
+set(figure(80),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(80),'-dpng','time_recovery_6x.png');
+
+set(figure(81),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(81),'-dpng','time_recovery_HCS.png');
+
+set(figure(82),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(82),'-dpng','time_recovery_DL.png');
+
+set(figure(83),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(83),'-dpng','time_recovery_PR.png');
+
+set(figure(84),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(84),'-dpng','time_recovery_TB.png');
+
+set(figure(41),'PaperPosition',[0 0 6*1.19 4*1.19]);
+print(figure(41),'-dpng','all_time.png');
+
 
 
 
