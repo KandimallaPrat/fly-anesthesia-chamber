@@ -50,3 +50,16 @@
 1. Turn off the air.
 2. Open the chamber door and unscrew the well plate. The well plate can be taken to the fly room and the flies can be purged.
 2. If this is the final experiment for the day, you can power off the anesthesia monitor, turn off the LEDs, and disconnect the tubing from the humidifier. You can then open the green flow meter and close the air tank.
+
+# Sevoflurane Calibration Log (08-25-21)
+| Dial Dose | Actual Dose |
+| ------- | ------- |
+| 0.5% | 0.65% |
+| 1% | 1.10% |
+| 2% | 2.18% |
+| 3% | 3.18% |
+| 4% | 4.28% |
+| 5% | 5.30% |
+| 6% | 6.35% |
+| 7% | 7.45% |
+| 8% | 8.50% |
