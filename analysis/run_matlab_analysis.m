@@ -30,7 +30,7 @@ for i = 1:length(d)
             % if all 6 wells are tracked
             if tc == 6
                 create_tracked_figure(d(i).name);
-                create_tracked_video(d(i).name);
+%                 create_tracked_video(d(i).name);
             end
         end
      end
