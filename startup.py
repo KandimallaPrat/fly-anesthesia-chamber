@@ -163,7 +163,7 @@ if use_monitor:
     mr = [-1, -1, -1]
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Add motors
+# Add motors and LED
 # ----------------------------------------------------------------------------------------------------------------------
 # Door
 # 2_1   2_2
@@ -181,6 +181,8 @@ drv.sequence[0] = adafruit_drv2605.Effect(118)  # Strong Buzz - 100%
 # motor_2_2 = PWMOutputDevice(19, active_high=True, initial_value=0)  # Connector 2, Yellow/Green
 # motor_2_3 = PWMOutputDevice(13, active_high=True, initial_value=0)  # Connector 2, Blue/Purple
 # motors = [motor_1_1, motor_1_2, motor_1_3, motor_2_1, motor_2_2, motor_2_3]
+
+led = PWMOutputDevice(18, active_high=True, initial_value=0)
 
 # Internal values
 verbose = True
@@ -308,11 +310,13 @@ while frame_time < t_experiment:
 
                     # LED on/off
                     if np.any(np.logical_and(frame_time > t_led_on, frame_time < (t_led_on + led_duration))):
-                        # Make sure motor is on
+                        # Make sure LED is on
+                        led.on()
                         led_status = 1
-                        led_voltage = 3
+                        led_voltage = 3.3
                     else:
-                        # Make sure motor is off
+                        # Make sure LED is off
+                        led.off()
                         led_status = 0
                         led_voltage = 0
 

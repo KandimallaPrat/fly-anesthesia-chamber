@@ -2,7 +2,7 @@
 
 # Experiment
 echo EXPERIMENT
-/usr/bin/python3 startup.py --datadir /media/pi/Elements/anesthesia-reanimation/data/ --t_experiment 40 --n_flies 0 0 0 0 0 0 --t_motor_on 10 15 20 25 30 --motor_duration 1 1 1 1 1
+/usr/bin/python3 startup.py --datadir /media/pi/Elements/anesthesia-reanimation/data/ --t_experiment 40 --n_flies 0 0 0 0 0 0 --t_motor_on 10 15 20 25 30 --motor_duration 1 1 1 1 1 --t_led_on 5 25 --led_duration 10 10
 
 # Transfer to Synology
 echo TRANSFER
